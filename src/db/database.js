@@ -61,6 +61,10 @@ class DatabaseService {
         resolve(this);
       };
 
+      request.onblocked = () => {
+        console.warn('IndexedDB bloqueado por outra conexão.');
+      };
+
       request.onerror = (event) => {
         console.error('Erro ao abrir IndexedDB:', event.target.error);
         reject(event.target.error);

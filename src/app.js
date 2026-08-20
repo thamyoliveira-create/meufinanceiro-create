@@ -55,20 +55,25 @@ class App {
   }
 
   async init() {
-    this.applyTheme(this.theme);
-    await db.init();
-    this.user = await auth.init();
+    try {
+      this.applyTheme(this.theme);
+      await db.init();
+      this.user = await auth.init();
 
-    if (!this.user) {
-      this.renderAuth();
-    } else {
-      await db.initDefaultCategories(this.user.id);
-      await this.renderApp();
+      if (!this.user) {
+        this.renderAuth();
+      } else {
+        await db.initDefaultCategories(this.user.id);
+        await this.renderApp();
 
-      if (!this.user.onboardingCompleted) {
-        const onboardingEl = document.getElementById('onboardingModal');
-        if (onboardingEl) onboardingEl.classList.remove('hidden');
+        if (!this.user.onboardingCompleted) {
+          const onboardingEl = document.getElementById('onboardingModal');
+          if (onboardingEl) onboardingEl.classList.remove('hidden');
+        }
       }
+    } catch (err) {
+      console.error('Erro na inicialização da aplicação:', err);
+      this.renderAuth();
     }
   }
 
@@ -891,4 +896,8 @@ class App {
 }
 
 const app = new App();
-window.addEventListener('DOMContentLoaded', () => app.init());
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => app.init());
+} else {
+  app.init();
+}
