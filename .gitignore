@@ -1,0 +1,14 @@
+# Logs e arquivos temporários
+*.log
+.DS_Store
+Thumbs.db
+
+# Chaves locais e segredos
+.env
+.env.local
+*.key
+
+# Diretórios de dependências se houver
+node_modules/
+dist/
+.cache/
