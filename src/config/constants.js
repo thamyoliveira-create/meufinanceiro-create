@@ -42,6 +42,16 @@ export const ACCOUNT_TYPES = [
   { id: 'other', label: 'Outra Conta', icon: 'wallet', color: '#6B7280' },
 ];
 
+export const INVESTMENT_TYPES = [
+  { id: 'fixed_income', label: 'Renda Fixa (CDB, LCI, LCA, Tesouro Direto)', icon: 'shield-check' },
+  { id: 'stocks', label: 'Ações Brasileiras (B3)', icon: 'trending-up' },
+  { id: 'reits', label: 'Fundos Imobiliários (FIIs)', icon: 'building' },
+  { id: 'international', label: 'Internacional / Stocks / ETFs', icon: 'globe' },
+  { id: 'crypto', label: 'Criptomoedas (Bitcoin, Ethereum)', icon: 'coins' },
+  { id: 'funds', label: 'Fundos de Investimento', icon: 'pie-chart' },
+  { id: 'other', label: 'Outros Ativos', icon: 'layers' },
+];
+
 export const FORMATTERS = {
   formatCurrency(value, forcePrivacy = false) {
     if (forcePrivacy || window.__meuFinanceiroPrivacyMode) {
