@@ -8,6 +8,7 @@ import { FinanceEngine } from './services/financeEngine.js';
 import { AIService } from './services/aiService.js';
 import { ExportService } from './services/exportService.js';
 import { NotificationService } from './services/notificationService.js';
+import { StatementParser } from './services/statementParser.js';
 
 // Componentes
 import { renderSidebar, MENU_ITEMS } from './components/Sidebar.js';
@@ -16,6 +17,7 @@ import { renderMobileNav } from './components/MobileNav.js';
 import { renderQuickAddModal } from './components/QuickAddModal.js';
 import { renderOnboardingModal } from './components/OnboardingModal.js';
 import { renderAiChatFloating } from './components/AiChatFloating.js';
+import { renderImportStatementModal } from './components/ImportStatementModal.js';
 
 // Visões
 import { renderAuthView } from './components/views/AuthView.js';
@@ -42,6 +44,7 @@ class App {
     this.user = null;
     this.theme = localStorage.getItem('meu_financeiro_theme') || 'dark';
     this.charts = {};
+    this.pendingImportTransactions = [];
   }
 
   async init() {
@@ -73,17 +76,17 @@ class App {
   // Notificações Toast
   showToast(message, type = 'success') {
     const toast = document.createElement('div');
-    toast.className = `fixed top-5 right-5 z-50 px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold text-white flex items-center gap-2 animate-fade-in ${
-      type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-red-600' : 'bg-indigo-600')
+    toast.className = `fixed top-5 right-5 z-50 px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold text-white flex items-center gap-2 animate-fade-in ${
+      type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-red-600' : 'bg-zinc-800 border border-white/10')
     }`;
     toast.innerHTML = `<span>${message}</span>`;
     document.body.appendChild(toast);
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
+      toast.style.transition = 'opacity 0.2s ease';
+      setTimeout(() => toast.remove(), 200);
+    }, 3000);
   }
 
   // ==========================================
@@ -177,7 +180,6 @@ class App {
       db.getAll('notifications', userId),
     ]);
 
-    // Executa verificação de alertas
     NotificationService.checkAndGenerateNotifications(db, userId);
 
     // 2. Cálculos Financeiros
@@ -211,22 +213,22 @@ class App {
       recentTransactions: transactions.slice(0, 10),
     };
 
-    // 3. Renderiza Estrutura da Interface
+    // 3. Renderiza Estrutura da Interface Minimalista
     const currentMenuItem = MENU_ITEMS.find(m => m.id === this.currentRoute) || MENU_ITEMS[0];
     const root = document.getElementById('app');
 
     root.innerHTML = `
-      <div class="min-h-screen bg-slate-950 flex">
+      <div class="min-h-screen bg-[#08090C] flex">
         <!-- Sidebar Desktop -->
         ${renderSidebar(this.currentRoute)}
 
         <!-- Área Principal de Conteúdo -->
-        <div class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+        <div class="flex-1 lg:ml-60 flex flex-col min-h-screen">
           <!-- Navbar -->
           ${renderNavbar(currentMenuItem.label, this.user, notifications, isDemoActive)}
 
           <!-- Conteúdo da Rota Ativa -->
-          <main class="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
+          <main class="flex-1 p-4 lg:p-8 max-w-6xl w-full mx-auto">
             <div id="mainViewContainer">
               ${this.getViewHtml(this.currentRoute, viewData)}
             </div>
@@ -239,6 +241,9 @@ class App {
         <!-- Modal de Cadastro Rápido com IA -->
         ${renderQuickAddModal(categories, accounts, creditCards)}
 
+        <!-- Modal de Importação de Extrato Bancário -->
+        ${renderImportStatementModal(accounts, categories)}
+
         <!-- Modal de Onboarding -->
         ${renderOnboardingModal()}
 
@@ -250,13 +255,11 @@ class App {
     this.refreshIcons();
     this.attachEventListeners(viewData);
 
-    // Inicializa gráficos se estiver no Dashboard
     if (this.currentRoute === 'dashboard') {
       this.initDashboardCharts(categoryBreakdown, transactions, metrics.monthKey);
     }
   }
 
-  // Obter HTML da visão selecionada
   getViewHtml(route, data) {
     switch (route) {
       case 'dashboard': return renderDashboardView(data);
@@ -280,14 +283,13 @@ class App {
   }
 
   // ==========================================
-  // GRÁFICOS CHART.JS DO DASHBOARD
+  // GRÁFICOS CHART.JS MINIMALISTAS
   // ==========================================
   initDashboardCharts(categoryBreakdown, transactions, currentMonthKey) {
-    // Destrói gráficos anteriores se existirem
     Object.values(this.charts).forEach(c => { if (c && c.destroy) c.destroy(); });
     this.charts = {};
 
-    // 1. Doughnut de Categorias
+    // 1. Doughnut de Categorias Minimalista
     const ctxCategory = document.getElementById('chartCategoryDoughnut');
     if (ctxCategory && categoryBreakdown.list.length > 0) {
       this.charts.category = new Chart(ctxCategory, {
@@ -296,9 +298,9 @@ class App {
           labels: categoryBreakdown.list.map(c => c.name),
           datasets: [{
             data: categoryBreakdown.list.map(c => c.amount),
-            backgroundColor: categoryBreakdown.list.map(c => c.color || '#10B981'),
+            backgroundColor: categoryBreakdown.list.map(c => c.color || '#A1A1AA'),
             borderWidth: 0,
-            hoverOffset: 6,
+            hoverOffset: 4,
           }]
         },
         options: {
@@ -312,7 +314,7 @@ class App {
               }
             }
           },
-          cutout: '72%',
+          cutout: '76%',
         }
       });
     }
@@ -330,13 +332,15 @@ class App {
               label: 'Receitas',
               data: historyData.map(h => h.income),
               backgroundColor: '#10B981',
-              borderRadius: 6,
+              borderRadius: 4,
+              barPercentage: 0.6,
             },
             {
               label: 'Despesas',
               data: historyData.map(h => h.expense),
-              backgroundColor: '#EF4444',
-              borderRadius: 6,
+              backgroundColor: '#3F3F46',
+              borderRadius: 4,
+              barPercentage: 0.6,
             }
           ]
         },
@@ -344,7 +348,7 @@ class App {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'top', labels: { color: '#9CA3AF', font: { size: 11 } } },
+            legend: { position: 'top', labels: { color: '#71717A', boxWidth: 10, font: { size: 11 } } },
             tooltip: {
               callbacks: {
                 label: (item) => ` ${item.dataset.label}: ${FORMATTERS.formatCurrency(item.raw)}`
@@ -352,46 +356,8 @@ class App {
             }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { color: '#9CA3AF' } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } }
-          }
-        }
-      });
-    }
-
-    // 3. Gastos Diários ao Longo do Mês (Picos)
-    const ctxDaily = document.getElementById('chartDailyExpenses');
-    if (ctxDaily) {
-      const dailyData = FinanceEngine.calculateDailyExpenses(transactions, currentMonthKey);
-      this.charts.daily = new Chart(ctxDaily, {
-        type: 'line',
-        data: {
-          labels: dailyData.map(d => `Dia ${d.day}`),
-          datasets: [{
-            label: 'Gasto no Dia (R$)',
-            data: dailyData.map(d => d.amount),
-            borderColor: '#6366F1',
-            backgroundColor: 'rgba(99, 102, 241, 0.15)',
-            fill: true,
-            tension: 0.35,
-            pointRadius: 3,
-            pointHoverRadius: 6,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (item) => ` Gasto: ${FORMATTERS.formatCurrency(item.raw)}`
-              }
-            }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#9CA3AF', maxTicksLimit: 10 } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } }
+            x: { grid: { display: false }, ticks: { color: '#71717A', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#71717A', font: { size: 10 } } }
           }
         }
       });
@@ -406,7 +372,7 @@ class App {
 
     // Navegação de Rotas
     document.querySelectorAll('.sidebar-item').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const route = btn.getAttribute('data-route');
         if (route) {
           this.currentRoute = route;
@@ -424,7 +390,6 @@ class App {
     const userDropdown = document.getElementById('userDropdown');
     btnProfile?.addEventListener('click', () => userDropdown?.classList.toggle('hidden'));
 
-    // Fechar dropdowns ao clicar fora
     document.addEventListener('click', (e) => {
       if (!btnNotifs?.contains(e.target) && !notifsDropdown?.contains(e.target)) {
         notifsDropdown?.classList.add('hidden');
@@ -434,7 +399,7 @@ class App {
       }
     });
 
-    // Alternar Tema no Navbar
+    // Alternar Tema
     document.getElementById('btnThemeToggle')?.addEventListener('click', () => {
       const nextTheme = this.theme === 'dark' ? 'light' : 'dark';
       this.applyTheme(nextTheme);
@@ -461,13 +426,13 @@ class App {
     };
 
     document.getElementById('btnQuickAddExpense')?.addEventListener('click', openQuickAdd);
+    document.getElementById('btnQuickAddHero')?.addEventListener('click', openQuickAdd);
     document.getElementById('btnMobileAddCenter')?.addEventListener('click', openQuickAdd);
-    document.getElementById('btnEmptyAddTx')?.addEventListener('click', openQuickAdd);
     document.getElementById('btnOpenNewTxModal')?.addEventListener('click', openQuickAdd);
     document.getElementById('btnCloseQuickAdd')?.addEventListener('click', () => modalQuickAdd?.classList.add('hidden'));
     document.getElementById('btnCancelQuickAdd')?.addEventListener('click', () => modalQuickAdd?.classList.add('hidden'));
 
-    // Parser de Linguagem Natural com IA
+    // Parser de Linguagem Natural
     document.getElementById('btnParseNL')?.addEventListener('click', () => {
       const text = document.getElementById('nlInputText').value;
       if (!text) return;
@@ -480,27 +445,16 @@ class App {
         if (parsed.categoryId) document.getElementById('txCategory').value = parsed.categoryId;
         if (parsed.paymentMethod) document.getElementById('txPaymentMethod').value = parsed.paymentMethod;
 
-        // Se for crédito com parcelas
         if (parsed.installments > 1) {
           document.getElementById('installmentRow')?.classList.remove('hidden');
           document.getElementById('txInstallments').value = String(parsed.installments);
         }
 
-        this.showToast('Dados interpretados com sucesso pela IA! Confira e confirme.', 'info');
+        this.showToast('Dados identificados com sucesso!', 'info');
       }
     });
 
-    // Exibe ou oculta opções de parcelamento quando selecionar Cartão de Crédito
-    document.getElementById('txPaymentMethod')?.addEventListener('change', (e) => {
-      const row = document.getElementById('installmentRow');
-      if (e.target.value === 'credit') {
-        row?.classList.remove('hidden');
-      } else {
-        row?.classList.add('hidden');
-      }
-    });
-
-    // Salvar Transação do Modal
+    // Submissão do Quick Add Form
     document.getElementById('quickAddForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
@@ -530,20 +484,135 @@ class App {
         };
 
         await db.saveTransaction(newTx, userId);
-        this.showToast('Transação registrada e saldo atualizado com sucesso!');
+        this.showToast('Lançamento registrado com sucesso!');
         modalQuickAdd.classList.add('hidden');
         document.getElementById('quickAddForm').reset();
         await this.renderApp();
       } catch (err) {
-        this.showToast('Erro ao salvar transação: ' + err.message, 'error');
+        this.showToast('Erro: ' + err.message, 'error');
       }
     });
 
-    // Ações na Tabela de Transações (Excluir e Duplicar)
+    // ==========================================
+    // MODAL DE IMPORTAÇÃO DE EXTRATOS BANCÁRIOS
+    // ==========================================
+    const modalImport = document.getElementById('importStatementModal');
+    const openImportModal = () => {
+      if (modalImport) {
+        modalImport.classList.remove('hidden');
+        this.pendingImportTransactions = [];
+        document.getElementById('recognizedTransactionsArea')?.classList.add('hidden');
+        document.getElementById('btnConfirmImport')?.setAttribute('disabled', 'true');
+        document.getElementById('btnConfirmImport')?.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    };
+
+    document.getElementById('btnOpenImportModal')?.addEventListener('click', openImportModal);
+    document.getElementById('btnCloseImportModal')?.addEventListener('click', () => modalImport?.classList.add('hidden'));
+    document.getElementById('btnCancelImport')?.addEventListener('click', () => modalImport?.classList.add('hidden'));
+
+    // Abas do Modal de Importação
+    const tabUpload = document.getElementById('tabUploadFile');
+    const tabPaste = document.getElementById('tabPasteText');
+    const dropzone = document.getElementById('dropzoneArea');
+    const pasteArea = document.getElementById('pasteTextArea');
+
+    tabUpload?.addEventListener('click', () => {
+      tabUpload.classList.add('bg-white/10', 'text-white');
+      tabPaste.classList.remove('bg-white/10', 'text-white');
+      tabPaste.classList.add('text-zinc-400');
+      dropzone?.classList.remove('hidden');
+      pasteArea?.classList.add('hidden');
+    });
+
+    tabPaste?.addEventListener('click', () => {
+      tabPaste.classList.add('bg-white/10', 'text-white');
+      tabUpload.classList.remove('bg-white/10', 'text-white');
+      tabUpload.classList.add('text-zinc-400');
+      pasteArea?.classList.remove('hidden');
+      dropzone?.classList.add('hidden');
+    });
+
+    // Drag & Drop e Seleção de Arquivo
+    const fileInput = document.getElementById('statementFileInput');
+    dropzone?.addEventListener('click', () => fileInput?.click());
+
+    dropzone?.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('border-white/40');
+    });
+
+    dropzone?.addEventListener('dragleave', () => {
+      dropzone.classList.remove('border-white/40');
+    });
+
+    dropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-white/40');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        this.processStatementFile(e.dataTransfer.files[0], viewData);
+      }
+    });
+
+    fileInput?.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        this.processStatementFile(e.target.files[0], viewData);
+      }
+    });
+
+    // Processar Texto Colado
+    document.getElementById('btnProcessPastedText')?.addEventListener('click', () => {
+      const rawText = document.getElementById('statementRawText').value;
+      if (!rawText.trim()) return;
+
+      const targetAccount = document.getElementById('importTargetAccount').value;
+      const parsed = StatementParser.parseCSVOrText(rawText, targetAccount, viewData.categories, viewData.transactions);
+      this.displayRecognizedTransactions(parsed, viewData);
+    });
+
+    // Confirmar e Salvar Transações Importadas
+    document.getElementById('btnConfirmImport')?.addEventListener('click', async () => {
+      const selected = this.pendingImportTransactions.filter(t => t.selected);
+      if (selected.length === 0) {
+        this.showToast('Nenhuma transação selecionada.', 'error');
+        return;
+      }
+
+      const targetAccount = document.getElementById('importTargetAccount').value;
+
+      for (const item of selected) {
+        const newTx = {
+          userId,
+          accountId: targetAccount,
+          categoryId: item.categoryId,
+          type: item.type,
+          description: item.description,
+          amount: Number(item.amount),
+          date: item.date,
+          paymentMethod: item.paymentMethod || 'pix',
+          isPaid: true,
+          notes: 'Importado de extrato bancário',
+        };
+        await db.saveTransaction(newTx, userId);
+      }
+
+      this.showToast(`${selected.length} transações importadas com sucesso!`);
+      modalImport?.classList.add('hidden');
+      await this.renderApp();
+    });
+
+    // Marcar / Desmarcar Todos
+    document.getElementById('btnToggleSelectAll')?.addEventListener('click', () => {
+      const allSelected = this.pendingImportTransactions.every(t => t.selected);
+      this.pendingImportTransactions.forEach(t => t.selected = !allSelected);
+      this.renderRecognizedRows(viewData.categories);
+    });
+
+    // Outros listeners gerais
     document.querySelectorAll('.btn-delete-tx').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
-        if (confirm('Deseja realmente excluir esta transação? O saldo da conta será recalculado.')) {
+        if (confirm('Excluir esta transação?')) {
           await db.deleteTransaction(id, userId);
           this.showToast('Transação excluída.');
           await this.renderApp();
@@ -558,266 +627,129 @@ class App {
         if (tx) {
           const dup = { ...tx, id: null, description: `${tx.description} (Cópia)` };
           await db.saveTransaction(dup, userId);
-          this.showToast('Transação duplicada com sucesso!');
+          this.showToast('Transação duplicada.');
           await this.renderApp();
         }
       });
     });
 
-    // Exportar CSV
     document.getElementById('btnExportCSV')?.addEventListener('click', () => {
       ExportService.exportTransactionsToCSV(viewData.transactions, viewData.categories, viewData.accounts);
-      this.showToast('Arquivo CSV gerado com sucesso!');
+      this.showToast('CSV exportado!');
     });
 
-    document.getElementById('btnExportFullCSV')?.addEventListener('click', () => {
-      ExportService.exportTransactionsToCSV(viewData.transactions, viewData.categories, viewData.accounts);
-      this.showToast('Relatório CSV exportado!');
-    });
-
-    document.getElementById('btnPrintPDF')?.addEventListener('click', () => {
-      window.print();
-    });
-
-    // ==========================================
-    // CONTAS A PAGAR E A RECEBER
-    // ==========================================
-    document.querySelectorAll('.btn-mark-bill-paid').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        try {
-          await db.markBillAsPaid(id, null, FORMATTERS.toIsoDate(), userId);
-          this.showToast('Conta marcada como paga e despesa registrada no saldo!');
-          await this.renderApp();
-        } catch (err) {
-          this.showToast(err.message, 'error');
-        }
-      });
-    });
-
-    document.querySelectorAll('.btn-mark-rec-received').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        try {
-          await db.markReceivableAsReceived(id, null, FORMATTERS.toIsoDate(), userId);
-          this.showToast('Recebimento confirmado e adicionado ao saldo!');
-          await this.renderApp();
-        } catch (err) {
-          this.showToast(err.message, 'error');
-        }
-      });
-    });
-
-    // ==========================================
-    // DADOS DE DEMONSTRAÇÃO E CONFIGURAÇÕES
-    // ==========================================
     document.getElementById('btnLoadDemoData')?.addEventListener('click', async () => {
-      if (confirm('Deseja carregar os dados de demonstração em BRL?')) {
+      if (confirm('Carregar dados de demonstração em BRL?')) {
         await loadDemoDataset(db, userId);
-        this.showToast('Dados de demonstração carregados com sucesso!');
+        this.showToast('Dados de demonstração carregados.');
         await this.renderApp();
       }
     });
 
     document.getElementById('btnWipeDemoData')?.addEventListener('click', async () => {
-      if (confirm('Deseja remover todos os registros demonstrativos?')) {
+      if (confirm('Remover dados fictícios de demonstração?')) {
         await db.wipeDemoData(userId);
-        this.showToast('Dados de demonstração removidos!');
+        this.showToast('Dados de demonstração removidos.');
         await this.renderApp();
       }
     });
+  }
 
-    document.getElementById('btnDownloadBackup')?.addEventListener('click', async () => {
-      const backupData = {
-        user: this.user,
-        transactions: viewData.transactions,
-        accounts: viewData.accounts,
-        categories: viewData.categories,
-        creditCards: viewData.creditCards,
-        goals: viewData.goals,
-        debts: viewData.debts,
-        investments: viewData.investments,
-        subscriptions: viewData.subscriptions,
-        exportedAt: new Date().toISOString(),
-      };
-      ExportService.exportFullBackup(backupData);
-      this.showToast('Backup JSON baixado com sucesso!');
-    });
-
-    document.getElementById('btnWipeAllUserData')?.addEventListener('click', async () => {
-      if (confirm('ATENÇÃO: Deseja apagar PERMANENTEMENTE todos os seus registros financeiros?')) {
-        await db.wipeUserData(userId);
-        this.showToast('Todos os registros foram apagados com sucesso.');
-        await this.renderApp();
-      }
-    });
-
-    // Onboarding Form
-    document.getElementById('btnSaveOnboarding')?.addEventListener('click', async () => {
-      const income = parseFloat(document.getElementById('onbIncome')?.value || '0');
-      const accName = document.getElementById('onbAccountName')?.value;
-      const accBal = parseFloat(document.getElementById('onbAccountBalance')?.value || '0');
-      const cardName = document.getElementById('onbCardName')?.value;
-      const cardLimit = parseFloat(document.getElementById('onbCardLimit')?.value || '0');
-
-      if (accName) {
-        await db.put('accounts', {
-          userId,
-          name: accName,
-          type: 'checking',
-          initialBalance: accBal,
-          currentBalance: accBal,
-          color: '#3B82F6',
-        });
-      }
-
-      if (cardName && cardLimit > 0) {
-        await db.put('credit_cards', {
-          userId,
-          name: cardName,
-          creditLimit: cardLimit,
-          closingDay: 25,
-          dueDay: 5,
-          color: '#8B5CF6',
-        });
-      }
-
-      await auth.updateProfile({ monthlyIncome: income, onboardingCompleted: true });
-      this.showToast('Configurações salvas! Bem-vindo ao Meu Financeiro IA.');
-      document.getElementById('onboardingModal')?.classList.add('hidden');
-      await this.renderApp();
-    });
-
-    document.getElementById('btnSkipOnboarding')?.addEventListener('click', async () => {
-      await auth.updateProfile({ onboardingCompleted: true });
-      document.getElementById('onboardingModal')?.classList.add('hidden');
-    });
-
-    // ==========================================
-    // CHAT FLUTUANTE E FULLSCREEN COM IA
-    // ==========================================
-    const floatingChatPanel = document.getElementById('floatingChatPanel');
-    document.getElementById('btnToggleFloatingChat')?.addEventListener('click', () => {
-      floatingChatPanel?.classList.toggle('hidden');
-    });
-    document.getElementById('btnCloseFloatingChat')?.addEventListener('click', () => {
-      floatingChatPanel?.classList.add('hidden');
-    });
-
-    // Chat Flutuante Form
-    const handleChatSubmit = async (queryText, containerId) => {
-      if (!queryText.trim()) return;
-
-      const container = document.getElementById(containerId);
-      if (!container) return;
-
-      // Mensagem do Usuário
-      const userMsg = document.createElement('div');
-      userMsg.className = 'flex items-start justify-end gap-2.5';
-      userMsg.innerHTML = `
-        <div class="p-3 bg-emerald-600 text-white rounded-2xl rounded-tr-none text-xs max-w-[85%]">
-          ${queryText}
-        </div>
-      `;
-      container.appendChild(userMsg);
-      container.scrollTop = container.scrollHeight;
-
-      // Mensagem de "Pensando..."
-      const botMsg = document.createElement('div');
-      botMsg.className = 'flex items-start gap-2.5';
-      botMsg.innerHTML = `
-        <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">
-          <i data-lucide="bot" class="w-4 h-4"></i>
-        </div>
-        <div class="p-3 bg-slate-800/80 rounded-2xl rounded-tl-none border border-slate-700/50 text-slate-300 text-xs leading-relaxed max-w-[85%]">
-          <span class="animate-pulse">Consultando dados cadastrados...</span>
-        </div>
-      `;
-      container.appendChild(botMsg);
-      container.scrollTop = container.scrollHeight;
-      this.refreshIcons();
-
-      // Consulta IA
-      const apiKey = localStorage.getItem('meu_financeiro_gemini_key') || '';
-      const reply = await AIService.handleChatQuery(queryText, {
-        metrics: viewData.metrics,
-        categories: viewData.categories,
-        transactions: viewData.transactions,
-        goals: viewData.goals,
-        debts: viewData.debts,
-        subscriptions: viewData.subscriptions,
-        apiKey,
-      });
-
-      botMsg.querySelector('div:last-child').innerHTML = reply.replace(/\n/g, '<br>');
-      container.scrollTop = container.scrollHeight;
-      this.refreshIcons();
+  // Helper para ler arquivo de extrato
+  processStatementFile(file, viewData) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      const targetAccount = document.getElementById('importTargetAccount').value;
+      const parsed = StatementParser.parseStatement(content, file.name, targetAccount, viewData.categories, viewData.transactions);
+      this.displayRecognizedTransactions(parsed, viewData);
     };
+    reader.readAsText(file);
+  }
 
-    document.getElementById('floatingChatForm')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const input = document.getElementById('floatingChatInput');
-      const text = input.value;
-      input.value = '';
-      handleChatSubmit(text, 'floatingChatMessages');
-    });
+  displayRecognizedTransactions(transactions, viewData) {
+    this.pendingImportTransactions = transactions;
+    const tableArea = document.getElementById('recognizedTransactionsArea');
+    const badge = document.getElementById('recognizedCountBadge');
+    const confirmBtn = document.getElementById('btnConfirmImport');
 
-    document.querySelectorAll('.chat-quick-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const q = btn.getAttribute('data-question');
-        handleChatSubmit(q, 'floatingChatMessages');
+    if (transactions.length === 0) {
+      this.showToast('Nenhuma transação válida identificada no arquivo.', 'error');
+      return;
+    }
+
+    tableArea?.classList.remove('hidden');
+    if (badge) badge.textContent = String(transactions.length);
+
+    if (confirmBtn) {
+      confirmBtn.removeAttribute('disabled');
+      confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    this.renderRecognizedRows(viewData.categories);
+    this.refreshIcons();
+  }
+
+  renderRecognizedRows(categories) {
+    const tbody = document.getElementById('recognizedTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = this.pendingImportTransactions.map((tx, idx) => `
+      <tr class="hover:bg-white/[0.02] text-xs">
+        <td class="p-2 text-center">
+          <input type="checkbox" class="stmt-check" data-index="${idx}" ${tx.selected ? 'checked' : ''}>
+        </td>
+        <td class="p-2 font-mono text-zinc-400 text-[11px]">${FORMATTERS.formatDate(tx.date)}</td>
+        <td class="p-2">
+          <input type="text" value="${tx.description}" class="input-fintech text-xs py-1 px-1.5 stmt-desc" data-index="${idx}">
+          ${tx.isDuplicate ? '<span class="text-[9px] bg-amber-500/10 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/20 font-semibold">Possível Duplicata</span>' : ''}
+        </td>
+        <td class="p-2">
+          <select class="input-fintech text-[11px] py-1 px-1.5 stmt-cat" data-index="${idx}">
+            ${categories.filter(c => c.type === tx.type).map(c => `
+              <option value="${c.id}" ${c.id === tx.categoryId ? 'selected' : ''}>${c.name}</option>
+            `).join('')}
+          </select>
+        </td>
+        <td class="p-2 text-right font-mono font-semibold ${tx.type === 'income' ? 'text-emerald-400' : 'text-zinc-200'}">
+          ${tx.type === 'income' ? '+' : '-'} ${FORMATTERS.formatCurrency(tx.amount)}
+        </td>
+      </tr>
+    `).join('');
+
+    // Listeners nos checkboxes da tabela
+    tbody.querySelectorAll('.stmt-check').forEach(chk => {
+      chk.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-index'), 10);
+        this.pendingImportTransactions[idx].selected = e.target.checked;
+        this.updateImportSummary();
       });
     });
 
-    document.getElementById('fullChatForm')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const input = document.getElementById('fullChatInput');
-      const text = input.value;
-      input.value = '';
-      handleChatSubmit(text, 'fullChatMessages');
-    });
-
-    // Simulador "Posso Comprar?"
-    document.getElementById('canIBuyForm')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const amount = parseFloat(document.getElementById('simAmount').value || '0');
-      const paymentMethod = document.getElementById('simPaymentMethod').value;
-      const installments = parseInt(document.getElementById('simInstallments').value, 10);
-
-      const sim = FinanceEngine.simulateCanIBuy({
-        amount,
-        installments,
-        paymentMethod,
-        currentBalance: viewData.metrics.currentBalance,
-        monthlyIncome: viewData.metrics.currentIncome,
-        monthlyExpenses: viewData.metrics.currentExpense,
-        futureInstallmentsCommitment: 380,
+    tbody.querySelectorAll('.stmt-desc').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-index'), 10);
+        this.pendingImportTransactions[idx].description = e.target.value;
       });
-
-      document.getElementById('simRiskBadge').textContent = sim.impactTitle;
-      document.getElementById('simRiskBadge').className = `px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider ${
-        sim.impactLevel === 'high' ? 'bg-red-500/20 text-red-400' : (sim.impactLevel === 'moderate' ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400')
-      }`;
-      document.getElementById('simInstallmentValue').textContent = `${FORMATTERS.formatCurrency(sim.installmentValue)}/mês`;
-      document.getElementById('simCommittedPercent').textContent = `${sim.newCommittedPercent.toFixed(1)}%`;
-      document.getElementById('simRemainingMargin').textContent = FORMATTERS.formatCurrency(sim.remainingMargin);
-
-      const reasonsHtml = sim.reasons.map(r => `
-        <div class="flex items-start gap-2">
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
-          <span>${r}</span>
-        </div>
-      `).join('');
-      document.getElementById('simReasonsList').innerHTML = reasonsHtml;
-      this.refreshIcons();
     });
 
-    // Salvar Chave Gemini
-    document.getElementById('btnSaveGeminiKey')?.addEventListener('click', () => {
-      const key = document.getElementById('geminiApiKeyInput').value;
-      localStorage.setItem('meu_financeiro_gemini_key', key.trim());
-      this.showToast('Chave Gemini salva com sucesso!');
+    tbody.querySelectorAll('.stmt-cat').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-index'), 10);
+        this.pendingImportTransactions[idx].categoryId = e.target.value;
+      });
     });
+
+    this.updateImportSummary();
+  }
+
+  updateImportSummary() {
+    const selected = this.pendingImportTransactions.filter(t => t.selected);
+    const totalAmount = selected.reduce((sum, t) => sum + (t.type === 'income' ? Number(t.amount) : -Number(t.amount)), 0);
+    const summaryText = document.getElementById('importSummaryText');
+    if (summaryText) {
+      summaryText.textContent = `${selected.length} de ${this.pendingImportTransactions.length} lançamentos selecionados (Impacto: ${FORMATTERS.formatCurrency(totalAmount)})`;
+    }
   }
 
   refreshIcons() {
@@ -827,6 +759,5 @@ class App {
   }
 }
 
-// Inicializa a aplicação
 const app = new App();
 window.addEventListener('DOMContentLoaded', () => app.init());
