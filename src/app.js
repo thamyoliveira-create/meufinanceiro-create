@@ -776,14 +776,27 @@ class App {
   }
 
   processStatementFile(file, viewData) {
+    const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target.result;
-      const targetAccount = document.getElementById('importTargetAccount').value;
-      const parsed = StatementParser.parseStatement(content, file.name, targetAccount, viewData.categories, viewData.transactions);
-      this.displayRecognizedTransactions(parsed, viewData);
+
+    reader.onload = async (e) => {
+      try {
+        const content = e.target.result;
+        const targetAccount = document.getElementById('importTargetAccount').value;
+        this.showToast(isPdf ? 'Processando páginas do PDF...' : 'Analisando extrato...', 'info');
+        const parsed = await StatementParser.parseStatement(content, file.name, targetAccount, viewData.categories, viewData.transactions);
+        this.displayRecognizedTransactions(parsed, viewData);
+      } catch (err) {
+        console.error('Erro ao ler extrato:', err);
+        this.showToast('Erro ao ler o arquivo: ' + err.message, 'error');
+      }
     };
-    reader.readAsText(file);
+
+    if (isPdf) {
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.readAsText(file);
+    }
   }
 
   displayRecognizedTransactions(transactions, viewData) {

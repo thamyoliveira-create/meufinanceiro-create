@@ -1,22 +1,66 @@
-// Motor de Reconhecimento e Importação de Extratos Bancários (OFX, CSV e Texto)
-// Suporta Nubank, Itaú, Bradesco, Santander, Banco do Brasil, Inter, C6, etc.
+// Motor de Reconhecimento e Importação de Extratos Bancários (PDF, OFX, CSV e Texto)
+// Suporta Nubank, Itaú, Bradesco, Santander, Banco do Brasil, Inter, C6, Caixa, etc.
 
 import { FORMATTERS } from '../config/constants.js';
-import { AIService } from './aiService.js';
 
 export const StatementParser = {
   // Parser Principal Unificado
-  parseStatement(fileContent, fileName = '', targetAccountId = null, categories = [], existingTransactions = []) {
-    const isOfx = fileName.toLowerCase().endsWith('.ofx') || fileContent.includes('<OFX>') || fileContent.includes('<STMTTRN>');
-    
-    if (isOfx) {
-      return this.parseOFX(fileContent, targetAccountId, categories, existingTransactions);
+  async parseStatement(contentOrBuffer, fileName = '', targetAccountId = null, categories = [], existingTransactions = []) {
+    const isPdf = fileName.toLowerCase().endsWith('.pdf') || (contentOrBuffer instanceof ArrayBuffer);
+    const isOfx = typeof contentOrBuffer === 'string' && (fileName.toLowerCase().endsWith('.ofx') || contentOrBuffer.includes('<OFX>') || contentOrBuffer.includes('<STMTTRN>'));
+
+    if (isPdf) {
+      return this.parsePDF(contentOrBuffer, targetAccountId, categories, existingTransactions);
+    } else if (isOfx) {
+      return this.parseOFX(contentOrBuffer, targetAccountId, categories, existingTransactions);
     } else {
-      return this.parseCSVOrText(fileContent, targetAccountId, categories, existingTransactions);
+      return this.parseCSVOrText(contentOrBuffer, targetAccountId, categories, existingTransactions);
     }
   },
 
-  // Parser para arquivos OFX (Padrão Bancário Universal Brasileiro)
+  // Parser Especializado para Arquivos PDF (Extratos e Faturas Bancárias)
+  async parsePDF(arrayBuffer, targetAccountId, categories = [], existingTransactions = []) {
+    if (!window.pdfjsLib) {
+      throw new Error('Biblioteca PDF.js não carregada.');
+    }
+
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdfDoc = await loadingTask.promise;
+    let extractedLines = [];
+
+    for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+      const page = await pdfDoc.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      
+      // Agrupa os itens de texto por coordenada Y (linhas visuais da página)
+      const lineMap = new Map();
+      textContent.items.forEach(item => {
+        const y = Math.round(item.transform[5]); // Coordenada vertical
+        if (!lineMap.has(y)) {
+          lineMap.set(y, []);
+        }
+        lineMap.get(y).push({ x: item.transform[4], str: item.str });
+      });
+
+      // Ordena as linhas do topo para a base da página
+      const sortedY = Array.from(lineMap.keys()).sort((a, b) => b - a);
+
+      sortedY.forEach(y => {
+        const items = lineMap.get(y).sort((a, b) => a.x - b.x);
+        const lineText = items.map(it => it.str).join(' ').trim();
+        if (lineText.length > 2) {
+          extractedLines.push(lineText);
+        }
+      });
+    }
+
+    const fullText = extractedLines.join('\n');
+    return this.parseCSVOrText(fullText, targetAccountId, categories, existingTransactions);
+  },
+
+  // Parser para arquivos OFX
   parseOFX(ofxContent, targetAccountId, categories = [], existingTransactions = []) {
     const transactions = [];
     const trnBlocks = ofxContent.split(/<STMTTRN>/i).slice(1);
@@ -27,9 +71,9 @@ export const StatementParser = {
         return match ? match[1].trim() : '';
       };
 
-      const trnType = getTag('TRNTYPE'); // DEBIT, CREDIT, OTHER
-      const rawDate = getTag('DTPOSTED'); // Formato: 20260815120000[-03:EST] ou 20260815
-      const rawAmount = getTag('TRNAMT'); // Ex: -158.90 ou 2500.00
+      const trnType = getTag('TRNTYPE');
+      const rawDate = getTag('DTPOSTED');
+      const rawAmount = getTag('TRNAMT');
       const memo = getTag('MEMO') || getTag('NAME') || `Transação #${index + 1}`;
       const fitId = getTag('FITID');
 
@@ -40,7 +84,6 @@ export const StatementParser = {
       const isIncome = numAmount > 0 || trnType.toUpperCase() === 'CREDIT';
       const type = isIncome ? 'income' : 'expense';
 
-      // Converte data OFX YYYYMMDD para YYYY-MM-DD
       let date = FORMATTERS.toIsoDate();
       if (rawDate && rawDate.length >= 8) {
         const y = rawDate.slice(0, 4);
@@ -49,11 +92,9 @@ export const StatementParser = {
         date = `${y}-${m}-${d}`;
       }
 
-      // Limpa e enriquece a descrição com IA
       const cleanDesc = this._cleanDescription(memo);
       const suggestedCategory = this._suggestCategory(cleanDesc, type, categories);
 
-      // Verificação inteligente de duplicatas
       const isDuplicate = existingTransactions.some(t => 
         t.date === date && 
         Math.abs(Number(t.amount) - absAmount) < 0.01 && 
@@ -74,77 +115,87 @@ export const StatementParser = {
         paymentMethod: isIncome ? 'pix' : 'debit',
         isPaid: true,
         isDuplicate,
-        selected: !isDuplicate, // pré-seleciona apenas os que não são duplicatas
+        selected: !isDuplicate,
       });
     });
 
     return transactions;
   },
 
-  // Parser para Extratos em CSV e Texto Copiado
+  // Parser para Extratos em CSV, Texto e Conteúdo de PDF
   parseCSVOrText(content, targetAccountId, categories = [], existingTransactions = []) {
     const lines = content.split(/\r\n|\n/).map(l => l.trim()).filter(l => l.length > 0);
     if (lines.length === 0) return [];
 
     const transactions = [];
-    const delimiter = lines[0].includes(';') ? ';' : (lines[0].includes(',') ? ',' : '\t');
+    const currentYear = new Date().getFullYear();
 
     lines.forEach((line, index) => {
-      // Ignora possíveis cabeçalhos
-      if (index === 0 && /data|date|descri|historico|valor|amount/i.test(line)) return;
+      // Ignora cabeçalhos institucionais comuns
+      if (/saldo anterior|saldo final|extrato de conta|rendimento liquido|periodo:|folha de cheque|total da fatura/i.test(line)) return;
 
-      const cols = line.split(delimiter).map(c => c.trim().replace(/^"|"$/g, ''));
-      if (cols.length < 2) return;
+      // 1. Localiza Data (DD/MM/AAAA, DD/MM, ou DD MMM como 15 AGO)
+      let date = null;
+      const fullDateMatch = line.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+      const shortDateMatch = line.match(/\b(\d{2})\/(\d{2})\b/);
+      const monthNameMatch = line.match(/\b(\d{1,2})\s+(JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ)\b/i);
 
-      // Localiza coluna de data
-      let date = FORMATTERS.toIsoDate();
-      let rawDate = cols.find(c => /^\d{2}\/\d{2}\/\d{4}$/.test(c) || /^\d{4}-\d{2}-\d{2}$/.test(c));
-      if (rawDate) {
-        if (rawDate.includes('/')) {
-          const [d, m, y] = rawDate.split('/');
-          date = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-        } else {
-          date = rawDate;
-        }
+      if (fullDateMatch) {
+        date = `${fullDateMatch[3]}-${fullDateMatch[2]}-${fullDateMatch[1]}`;
+      } else if (shortDateMatch) {
+        date = `${currentYear}-${shortDateMatch[2]}-${shortDateMatch[1]}`;
+      } else if (monthNameMatch) {
+        const monthNames = { jan: '01', fev: '02', mar: '03', abr: '04', mai: '05', jun: '06', jul: '07', ago: '08', set: '09', out: '10', nov: '11', dez: '12' };
+        const m = monthNames[monthNameMatch[2].toLowerCase()] || '01';
+        const d = String(monthNameMatch[1]).padStart(2, '0');
+        date = `${currentYear}-${m}-${d}`;
       }
 
-      // Localiza coluna de valor
-      let numAmount = 0;
-      let rawAmountStr = '';
-      cols.forEach(col => {
-        const clean = col.replace('R$', '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
-        const parsed = parseFloat(clean);
-        if (!isNaN(parsed) && parsed !== 0 && !col.includes('/')) {
-          numAmount = parsed;
-          rawAmountStr = col;
-        }
-      });
+      if (!date) return; // Se a linha não tem data, não é uma transação individual
 
-      if (numAmount === 0) return;
+      // 2. Localiza Valor em Reais (ex: R$ 150,00 | -150,00 | 150,00 D | 150.00)
+      const amountMatches = line.match(/(?:R\$\s*)?(-?\d{1,3}(?:\.\d{3})*,\d{2}|-?\d+[.,]\d{2})\s*(D|C|\+|-)?/gi);
+      if (!amountMatches) return;
+
+      const lastMatch = amountMatches[amountMatches.length - 1]; // Geralmente o valor está no final da linha
+      let cleanValStr = lastMatch.replace(/R\$|\s/gi, '').replace(/\./g, '').replace(',', '.');
+      
+      let numAmount = parseFloat(cleanValStr);
+      if (isNaN(numAmount) || numAmount === 0) return;
+
+      const isDebitExplicit = /D|-/i.test(lastMatch) || cleanValStr.startsWith('-');
+      const isCreditExplicit = /C|\+/i.test(lastMatch);
+
+      let isIncome = isCreditExplicit && !isDebitExplicit;
+      if (!isCreditExplicit && !isDebitExplicit) {
+        if (/recebi|salario|pix recebido|deposito|ted recebida|rendimento/i.test(line)) {
+          isIncome = true;
+        }
+      }
 
       const absAmount = Math.abs(numAmount);
-      let isIncome = numAmount > 0;
-      
-      // Identifica descrição (coluna de texto mais longa que não seja valor nem data)
-      let desc = cols.filter(c => c !== rawDate && c !== rawAmountStr && isNaN(parseFloat(c.replace(',', '.')))).join(' ');
-      if (!desc || desc.length < 2) desc = `Lançamento #${index}`;
-
-      if (/recebi|salario|pix recebido|deposito|estorno|ted recebida/i.test(desc)) {
-        isIncome = true;
-      }
-
       const type = isIncome ? 'income' : 'expense';
+
+      // 3. Limpa a Descrição removendo data e valor
+      let desc = line
+        .replace(/\b\d{2}\/\d{2}(?:\/\d{4})?\b/g, '')
+        .replace(/\b\d{1,2}\s+(?:JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ)\b/gi, '')
+        .replace(/(?:R\$\s*)?-?\d+[.,]\d{2}\s*(?:D|C|\+|-)?/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!desc || desc.length < 2) desc = `Lançamento Bancário #${index}`;
+
       const cleanDesc = this._cleanDescription(desc);
       const suggestedCategory = this._suggestCategory(cleanDesc, type, categories);
 
-      // Verificação de duplicatas
       const isDuplicate = existingTransactions.some(t => 
         t.date === date && 
         Math.abs(Number(t.amount) - absAmount) < 0.01
       );
 
       transactions.push({
-        id: `stmt_csv_${Date.now()}_${index}`,
+        id: `stmt_pdf_${Date.now()}_${index}`,
         date,
         description: cleanDesc,
         rawDescription: desc,
@@ -163,14 +214,12 @@ export const StatementParser = {
     return transactions;
   },
 
-  // Limpeza de descrições bancárias sujas
   _cleanDescription(raw) {
     let clean = raw
       .replace(/COMPRA\s+(?:A\s+VISTA|DEBITO|CREDITO|PARCELADA)?/gi, '')
       .replace(/PAGAMENTO\s+(?:DE\s+TITULO|PIX|BOLETO|CONTA)?/gi, '')
       .replace(/TRANSFERENCIA\s+(?:ENVIADA|RECEBIDA|PIX)?/gi, '')
       .replace(/PIX\s+(?:ENVIADO|RECEBIDO)?/gi, '')
-      .replace(/\d{2}\/\d{2}(?:\s+\d{2}:\d{2})?/g, '') // Remove datas/horas
       .replace(/[*#_]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
@@ -179,7 +228,6 @@ export const StatementParser = {
     return clean.charAt(0).toUpperCase() + clean.slice(1);
   },
 
-  // Sugestão de categoria com base em palavras-chave bancárias
   _suggestCategory(text, type, categories = []) {
     const clean = text.toLowerCase();
     const typeCats = categories.filter(c => c.type === type);
@@ -204,7 +252,6 @@ export const StatementParser = {
       }
     }
 
-    // Categoria padrão caso não encontre
     const defaultCat = typeCats[0] || { id: null, name: type === 'income' ? 'Outras Receitas' : 'Outros Gastos' };
     return defaultCat;
   }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Meu Financeiro IA - Gestão Financeira Pessoal Inteligente</title>
   <meta name="description" content="Aplicativo moderno de gestão financeira pessoal com Inteligência Artificial, gráficos interativos, metas e orçamentos.">
-  <meta name="theme-color" content="#0B0F17">
+  <meta name="theme-color" content="#08090C">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,10 +16,10 @@
         extend: {
           colors: {
             fintech: {
-              bg: '#0B0F17',
-              card: '#1A2234',
-              primary: '#10B981',
-              secondary: '#6366F1',
+              bg: '#08090C',
+              card: '#0E1015',
+              primary: '#FFFFFF',
+              accent: '#10B981',
             }
           }
         }
@@ -33,16 +33,19 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Estilos Personalizados -->
+  <!-- Mozilla PDF.js CDN para Leitura de Extratos em PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- Estilos Personalizados Minimalistas -->
   <link rel="stylesheet" href="./src/styles/main.css">
 </head>
-<body class="bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-slate-950">
-  <!-- Container Principal da Aplicação SPA -->
+<body class="bg-[#08090C] text-zinc-100 antialiased selection:bg-white selection:text-black">
+  <!-- Container Principal SPA -->
   <div id="app">
     <div class="min-h-screen flex items-center justify-center">
       <div class="flex flex-col items-center gap-3">
-        <div class="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-        <p class="text-xs font-semibold text-slate-400">Carregando Meu Financeiro IA...</p>
+        <div class="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+        <p class="text-xs font-medium text-zinc-400">Carregando Meu Financeiro IA...</p>
       </div>
     </div>
   </div>
