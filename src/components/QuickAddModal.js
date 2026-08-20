@@ -1,4 +1,4 @@
-// Modal de Cadastro Rápido Minimalista - Meu Financeiro IA
+// Modal de Cadastro Rápido Minimalista com OCR de Comprovantes e Divisão - Meu Financeiro IA
 
 export function renderQuickAddModal(categories = [], accounts = [], creditCards = []) {
   const expenseCategories = categories.filter(c => c.type === 'expense');
@@ -19,13 +19,21 @@ export function renderQuickAddModal(categories = [], accounts = [], creditCards 
 
         <!-- Conteúdo -->
         <div class="p-5 space-y-4">
-          <!-- Campo de Linguagem Natural com IA -->
+          <!-- Entrada Rápida por IA ou Foto de Comprovante -->
           <div class="space-y-1.5">
-            <div class="relative">
-              <input type="text" id="nlInputText" placeholder='Ex: "Gastei 48 reais no Uber hoje" ou "Mercado 150 em 2x"' class="input-fintech pr-20 text-xs py-2.5">
-              <button id="btnParseNL" class="absolute right-1 top-1 bottom-1 px-3 rounded-md bg-white/10 hover:bg-white/20 text-zinc-200 text-xs font-medium transition-colors">
-                Analisar
-              </button>
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <input type="text" id="nlInputText" placeholder='Ex: "Gastei 48 reais no Uber hoje" ou "iFood 65"' class="input-fintech pr-20 text-xs py-2">
+                <button id="btnParseNL" class="absolute right-1 top-1 bottom-1 px-2.5 rounded-md bg-white/10 hover:bg-white/20 text-zinc-200 text-xs font-medium transition-colors">
+                  Analisar
+                </button>
+              </div>
+
+              <!-- Botão Scanner de Comprovante / Foto -->
+              <label for="receiptImageInput" class="btn-secondary py-2 px-2.5 text-xs cursor-pointer" title="Ler Comprovante / Nota Fiscal por Foto">
+                <i data-lucide="camera" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <input type="file" id="receiptImageInput" accept="image/*" class="hidden">
+              </label>
             </div>
           </div>
 
@@ -122,8 +130,32 @@ export function renderQuickAddModal(categories = [], accounts = [], creditCards 
               </div>
             </div>
 
+            <!-- Divisão de Gastos (Casais / Amigos) -->
+            <div class="p-3 bg-zinc-950 rounded-lg border border-white/5 space-y-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="txIsShared" class="rounded bg-zinc-900 border-white/10">
+                <span class="font-medium text-zinc-300">Despesa Compartilhada (Dividir com alguém)</span>
+              </label>
+
+              <div id="sharedExpenseFields" class="hidden grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <label class="block font-medium text-zinc-500 text-[10px] mb-0.5">Dividir com quem?</label>
+                  <input type="text" id="txSharedWith" value="Parceiro(a)" placeholder="Nome da pessoa" class="input-fintech text-[11px] py-1">
+                </div>
+                <div>
+                  <label class="block font-medium text-zinc-500 text-[10px] mb-0.5">Parte da outra pessoa (%)</label>
+                  <select id="txSharedPercent" class="input-fintech text-[11px] py-1">
+                    <option value="50" selected>50% (Meio a meio)</option>
+                    <option value="60">60%</option>
+                    <option value="40">40%</option>
+                    <option value="100">100% (Reembolso total)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <!-- Ações -->
-            <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/[0.06]">
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
               <button type="button" id="btnCancelQuickAdd" class="btn-secondary text-xs">Cancelar</button>
               <button type="submit" class="btn-primary text-xs">
                 Confirmar e Salvar

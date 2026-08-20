@@ -6,8 +6,10 @@ export const MENU_ITEMS = [
   { id: 'accounts', label: 'Contas & Saldos', icon: 'wallet-cards' },
   { id: 'cards', label: 'Cartões', icon: 'credit-card' },
   { id: 'bills', label: 'A Pagar / Receber', icon: 'receipt' },
-  { id: 'budget', label: 'Orçamento', icon: 'pie-chart' },
+  { id: 'budget', label: 'Orçamento 50/30/20', icon: 'scale' },
   { id: 'goals', label: 'Metas & Reserva', icon: 'target' },
+  { id: 'fire', label: 'Independência FIRE', icon: 'flame', badge: 'FIRE' },
+  { id: 'split', label: 'Divisão de Gastos', icon: 'users' },
   { id: 'debts', label: 'Dívidas', icon: 'percent' },
   { id: 'investments', label: 'Investimentos', icon: 'trending-up' },
   { id: 'networth', label: 'Patrimônio', icon: 'landmark' },
@@ -27,7 +29,9 @@ export function renderSidebar(activeRoute = 'dashboard') {
       : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04] font-normal';
 
     const badgeHtml = item.badge
-      ? `<span class="ml-auto text-[9px] uppercase font-mono font-bold tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${item.badge}</span>`
+      ? `<span class="ml-auto text-[9px] uppercase font-mono font-bold tracking-wider px-1.5 py-0.5 rounded ${
+          item.badge === 'FIRE' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+        }">${item.badge}</span>`
       : '';
 
     return `

@@ -9,6 +9,9 @@ import { AIService } from './services/aiService.js';
 import { ExportService } from './services/exportService.js';
 import { NotificationService } from './services/notificationService.js';
 import { StatementParser } from './services/statementParser.js';
+import { ReceiptScanner } from './services/receiptScanner.js';
+import { FireEngine } from './services/fireEngine.js';
+import { SplitExpenseService } from './services/splitExpenseService.js';
 
 // Componentes
 import { renderSidebar, MENU_ITEMS } from './components/Sidebar.js';
@@ -37,12 +40,16 @@ import { renderSubscriptionsView } from './components/views/SubscriptionsView.js
 import { renderCanIBuyItView } from './components/views/CanIBuyItView.js';
 import { renderAiAssistantView } from './components/views/AiAssistantView.js';
 import { renderSettingsView } from './components/views/SettingsView.js';
+import { renderFireView } from './components/views/FireView.js';
+import { renderSplitView } from './components/views/SplitView.js';
 
 class App {
   constructor() {
     this.currentRoute = 'dashboard';
     this.user = null;
     this.theme = localStorage.getItem('meu_financeiro_theme') || 'dark';
+    this.isPrivacyMode = localStorage.getItem('meu_financeiro_privacy_mode') === 'true';
+    window.__meuFinanceiroPrivacyMode = this.isPrivacyMode;
     this.charts = {};
     this.pendingImportTransactions = [];
   }
@@ -58,7 +65,6 @@ class App {
       await db.initDefaultCategories(this.user.id);
       await this.renderApp();
 
-      // Checa se precisa exibir o onboarding inicial
       if (!this.user.onboardingCompleted) {
         const onboardingEl = document.getElementById('onboardingModal');
         if (onboardingEl) onboardingEl.classList.remove('hidden');
@@ -66,14 +72,20 @@ class App {
     }
   }
 
-  // Alternar Tema
   applyTheme(theme) {
     this.theme = theme;
     localStorage.setItem('meu_financeiro_theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
   }
 
-  // Notificações Toast
+  togglePrivacyMode() {
+    this.isPrivacyMode = !this.isPrivacyMode;
+    window.__meuFinanceiroPrivacyMode = this.isPrivacyMode;
+    localStorage.setItem('meu_financeiro_privacy_mode', String(this.isPrivacyMode));
+    this.showToast(this.isPrivacyMode ? 'Modo Privacidade ativado (saldos ocultos)' : 'Modo Privacidade desativado', 'info');
+    this.renderApp();
+  }
+
   showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `fixed top-5 right-5 z-50 px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold text-white flex items-center gap-2 animate-fade-in ${
@@ -97,11 +109,9 @@ class App {
     root.innerHTML = renderAuthView(mode);
     this.refreshIcons();
 
-    // Eventos de troca de aba
     document.getElementById('btnTabLogin')?.addEventListener('click', () => this.renderAuth('login'));
     document.getElementById('btnTabSignup')?.addEventListener('click', () => this.renderAuth('signup'));
     
-    // Esqueci a senha
     document.getElementById('btnForgotPassword')?.addEventListener('click', () => {
       document.getElementById('authLoginForm')?.classList.add('hidden');
       document.getElementById('authResetForm')?.classList.remove('hidden');
@@ -112,7 +122,6 @@ class App {
       document.getElementById('authLoginForm')?.classList.remove('hidden');
     });
 
-    // Submissão Login
     document.getElementById('authLoginForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
@@ -126,7 +135,6 @@ class App {
       }
     });
 
-    // Submissão Cadastro
     document.getElementById('authSignupForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
@@ -134,14 +142,13 @@ class App {
         const email = document.getElementById('signupEmail').value;
         const pass = document.getElementById('signupPassword').value;
         this.user = await auth.signup(name, email, pass);
-        this.showToast('Conta criada com sucesso! Bem-vindo(a).');
+        this.showToast('Conta criada com sucesso!');
         await this.init();
       } catch (err) {
         this.showToast(err.message, 'error');
       }
     });
 
-    // Submissão Reset de Senha
     document.getElementById('authResetForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
@@ -162,7 +169,6 @@ class App {
   async renderApp() {
     const userId = this.user.id;
 
-    // 1. Carrega dados do banco do usuário
     const [accounts, categories, transactions, creditCards, bills, receivables, budgets, goals, debts, investments, assets, liabilities, subscriptions, notifications] = await Promise.all([
       db.getAll('accounts', userId),
       db.getAll('categories', userId),
@@ -182,7 +188,6 @@ class App {
 
     NotificationService.checkAndGenerateNotifications(db, userId);
 
-    // 2. Cálculos Financeiros
     const metrics = await FinanceEngine.calculateDashboardMetrics(db, userId);
     const categoryBreakdown = FinanceEngine.calculateCategoryBreakdown(transactions.filter(t => t.date && t.date.startsWith(metrics.monthKey)), categories);
     const anomalies = AIService.detectAnomalies(transactions, categories);
@@ -213,7 +218,6 @@ class App {
       recentTransactions: transactions.slice(0, 10),
     };
 
-    // 3. Renderiza Estrutura da Interface Minimalista
     const currentMenuItem = MENU_ITEMS.find(m => m.id === this.currentRoute) || MENU_ITEMS[0];
     const root = document.getElementById('app');
 
@@ -224,7 +228,7 @@ class App {
 
         <!-- Área Principal de Conteúdo -->
         <div class="flex-1 lg:ml-60 flex flex-col min-h-screen">
-          <!-- Navbar -->
+          <!-- Navbar com Botão Privacidade -->
           ${renderNavbar(currentMenuItem.label, this.user, notifications, isDemoActive)}
 
           <!-- Conteúdo da Rota Ativa -->
@@ -238,16 +242,10 @@ class App {
         <!-- Navegação Mobile Inferior -->
         ${renderMobileNav(this.currentRoute)}
 
-        <!-- Modal de Cadastro Rápido com IA -->
+        <!-- Modais -->
         ${renderQuickAddModal(categories, accounts, creditCards)}
-
-        <!-- Modal de Importação de Extrato Bancário -->
         ${renderImportStatementModal(accounts, categories)}
-
-        <!-- Modal de Onboarding -->
         ${renderOnboardingModal()}
-
-        <!-- Assistente IA Flutuante -->
         ${renderAiChatFloating()}
       </div>
     `;
@@ -269,6 +267,8 @@ class App {
       case 'bills': return renderBillsView(data);
       case 'budget': return renderBudgetView(data);
       case 'goals': return renderGoalsView(data);
+      case 'fire': return renderFireView(data);
+      case 'split': return renderSplitView(data);
       case 'debts': return renderDebtsView(data);
       case 'investments': return renderInvestmentsView(data);
       case 'networth': return renderNetWorthView(data);
@@ -282,14 +282,10 @@ class App {
     }
   }
 
-  // ==========================================
-  // GRÁFICOS CHART.JS MINIMALISTAS
-  // ==========================================
   initDashboardCharts(categoryBreakdown, transactions, currentMonthKey) {
     Object.values(this.charts).forEach(c => { if (c && c.destroy) c.destroy(); });
     this.charts = {};
 
-    // 1. Doughnut de Categorias Minimalista
     const ctxCategory = document.getElementById('chartCategoryDoughnut');
     if (ctxCategory && categoryBreakdown.list.length > 0) {
       this.charts.category = new Chart(ctxCategory, {
@@ -319,7 +315,6 @@ class App {
       });
     }
 
-    // 2. Histórico de 6 Meses Receitas x Despesas
     const ctxHistory = document.getElementById('chartCashflowHistory');
     if (ctxHistory) {
       const historyData = FinanceEngine.calculateMonthlyCashflow(transactions, 6);
@@ -364,9 +359,6 @@ class App {
     }
   }
 
-  // ==========================================
-  // EVENT LISTENERS E INTERAÇÕES
-  // ==========================================
   attachEventListeners(viewData) {
     const userId = this.user.id;
 
@@ -381,7 +373,12 @@ class App {
       });
     });
 
-    // Toggle Dropdowns
+    // Toggle Modo Privacidade
+    document.getElementById('btnTogglePrivacy')?.addEventListener('click', () => {
+      this.togglePrivacyMode();
+    });
+
+    // Dropdowns
     const btnNotifs = document.getElementById('btnNotifications');
     const notifsDropdown = document.getElementById('notificationsDropdown');
     btnNotifs?.addEventListener('click', () => notifsDropdown?.classList.toggle('hidden'));
@@ -415,7 +412,7 @@ class App {
     });
 
     // ==========================================
-    // MODAL DE CADASTRO RÁPIDO COM IA
+    // MODAL DE CADASTRO RÁPIDO & OCR DE FOTO
     // ==========================================
     const modalQuickAdd = document.getElementById('quickAddModal');
     const openQuickAdd = () => {
@@ -432,7 +429,30 @@ class App {
     document.getElementById('btnCloseQuickAdd')?.addEventListener('click', () => modalQuickAdd?.classList.add('hidden'));
     document.getElementById('btnCancelQuickAdd')?.addEventListener('click', () => modalQuickAdd?.classList.add('hidden'));
 
-    // Parser de Linguagem Natural
+    // OCR / Leitura de Foto de Comprovante
+    document.getElementById('receiptImageInput')?.addEventListener('change', async (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        this.showToast('Lendo comprovante com IA...', 'info');
+        const scanned = await ReceiptScanner.scanReceiptImage(e.target.files[0], viewData.categories);
+        if (scanned) {
+          document.getElementById('txDescription').value = scanned.description;
+          document.getElementById('txAmount').value = scanned.amount;
+          document.getElementById('txDate').value = scanned.date;
+          if (scanned.categoryId) document.getElementById('txCategory').value = scanned.categoryId;
+          if (scanned.paymentMethod) document.getElementById('txPaymentMethod').value = scanned.paymentMethod;
+          this.showToast('Comprovante lido com sucesso! Confira os dados.', 'success');
+        }
+      }
+    });
+
+    // Checkbox Despesa Compartilhada
+    document.getElementById('txIsShared')?.addEventListener('change', (e) => {
+      const fields = document.getElementById('sharedExpenseFields');
+      if (e.target.checked) fields?.classList.remove('hidden');
+      else fields?.classList.add('hidden');
+    });
+
+    // Parser NL
     document.getElementById('btnParseNL')?.addEventListener('click', () => {
       const text = document.getElementById('nlInputText').value;
       if (!text) return;
@@ -454,7 +474,7 @@ class App {
       }
     });
 
-    // Submissão do Quick Add Form
+    // Salvar Transação
     document.getElementById('quickAddForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
@@ -467,6 +487,10 @@ class App {
         const paymentMethod = document.getElementById('txPaymentMethod').value;
         const creditCardId = paymentMethod === 'credit' ? document.getElementById('txCreditCard')?.value : null;
         const totalInstallments = paymentMethod === 'credit' ? parseInt(document.getElementById('txInstallments')?.value || '1', 10) : 1;
+
+        const isShared = document.getElementById('txIsShared')?.checked || false;
+        const sharedWith = isShared ? document.getElementById('txSharedWith')?.value : null;
+        const otherSharePercent = isShared ? parseFloat(document.getElementById('txSharedPercent')?.value || '50') : 0;
 
         const newTx = {
           userId,
@@ -481,6 +505,9 @@ class App {
           isPaid: true,
           isInstallment: totalInstallments > 1,
           totalInstallments,
+          isShared,
+          sharedWith,
+          otherSharePercent,
         };
 
         await db.saveTransaction(newTx, userId);
@@ -494,7 +521,36 @@ class App {
     });
 
     // ==========================================
-    // MODAL DE IMPORTAÇÃO DE EXTRATOS BANCÁRIOS
+    // SIMULADOR FIRE FORM
+    // ==========================================
+    document.getElementById('fireForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const currentAge = parseInt(document.getElementById('fireAgeInput').value || '28', 10);
+      const monthlyCostTarget = parseFloat(document.getElementById('fireCostInput').value || '5000');
+      const currentInvested = parseFloat(document.getElementById('fireInvestedInput').value || '0');
+      const monthlyContribution = parseFloat(document.getElementById('fireContributionInput').value || '1000');
+      const realAnnualReturnRate = parseFloat(document.getElementById('fireReturnRateInput').value || '7');
+
+      const fire = FireEngine.calculateFireProjection({
+        currentAge,
+        monthlyCostTarget,
+        currentInvested,
+        monthlyContribution,
+        realAnnualReturnRate,
+      });
+
+      document.getElementById('fireTargetNumber').textContent = FORMATTERS.formatCurrency(fire.fireTargetNumber);
+      document.getElementById('firePassiveIncome').textContent = `${FORMATTERS.formatCurrency(fire.passiveMonthlyIncome)}/mês`;
+      document.getElementById('fireYears').textContent = `${fire.yearsToFire} anos`;
+      document.getElementById('fireTargetAge').textContent = `${fire.fireAge} anos`;
+      document.getElementById('fireProgress').textContent = `${fire.progressPercent.toFixed(1)}%`;
+      document.getElementById('fireProgressBar').style.width = `${fire.progressPercent}%`;
+
+      this.showToast('Projeção FIRE recalculada com sucesso!');
+    });
+
+    // ==========================================
+    // MODAL DE IMPORTAÇÃO DE EXTRATOS
     // ==========================================
     const modalImport = document.getElementById('importStatementModal');
     const openImportModal = () => {
@@ -511,7 +567,6 @@ class App {
     document.getElementById('btnCloseImportModal')?.addEventListener('click', () => modalImport?.classList.add('hidden'));
     document.getElementById('btnCancelImport')?.addEventListener('click', () => modalImport?.classList.add('hidden'));
 
-    // Abas do Modal de Importação
     const tabUpload = document.getElementById('tabUploadFile');
     const tabPaste = document.getElementById('tabPasteText');
     const dropzone = document.getElementById('dropzoneArea');
@@ -533,7 +588,6 @@ class App {
       dropzone?.classList.add('hidden');
     });
 
-    // Drag & Drop e Seleção de Arquivo
     const fileInput = document.getElementById('statementFileInput');
     dropzone?.addEventListener('click', () => fileInput?.click());
 
@@ -560,7 +614,6 @@ class App {
       }
     });
 
-    // Processar Texto Colado
     document.getElementById('btnProcessPastedText')?.addEventListener('click', () => {
       const rawText = document.getElementById('statementRawText').value;
       if (!rawText.trim()) return;
@@ -570,7 +623,6 @@ class App {
       this.displayRecognizedTransactions(parsed, viewData);
     });
 
-    // Confirmar e Salvar Transações Importadas
     document.getElementById('btnConfirmImport')?.addEventListener('click', async () => {
       const selected = this.pendingImportTransactions.filter(t => t.selected);
       if (selected.length === 0) {
@@ -601,11 +653,75 @@ class App {
       await this.renderApp();
     });
 
-    // Marcar / Desmarcar Todos
     document.getElementById('btnToggleSelectAll')?.addEventListener('click', () => {
       const allSelected = this.pendingImportTransactions.every(t => t.selected);
       this.pendingImportTransactions.forEach(t => t.selected = !allSelected);
       this.renderRecognizedRows(viewData.categories);
+    });
+
+    // Chat
+    const floatingChatPanel = document.getElementById('floatingChatPanel');
+    document.getElementById('btnToggleFloatingChat')?.addEventListener('click', () => {
+      floatingChatPanel?.classList.toggle('hidden');
+    });
+    document.getElementById('btnCloseFloatingChat')?.addEventListener('click', () => {
+      floatingChatPanel?.classList.add('hidden');
+    });
+
+    const handleChatSubmit = async (queryText, containerId) => {
+      if (!queryText.trim()) return;
+
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const userMsg = document.createElement('div');
+      userMsg.className = 'flex items-start justify-end gap-2.5';
+      userMsg.innerHTML = `
+        <div class="p-2.5 bg-white text-black font-medium rounded-xl rounded-tr-none text-xs max-w-[85%]">
+          ${queryText}
+        </div>
+      `;
+      container.appendChild(userMsg);
+      container.scrollTop = container.scrollHeight;
+
+      const botMsg = document.createElement('div');
+      botMsg.className = 'flex items-start gap-2.5';
+      botMsg.innerHTML = `
+        <div class="p-3 bg-white/[0.04] border border-white/5 rounded-xl text-zinc-300 text-xs leading-relaxed max-w-[85%]">
+          <span class="animate-pulse">Consultando dados cadastrados...</span>
+        </div>
+      `;
+      container.appendChild(botMsg);
+      container.scrollTop = container.scrollHeight;
+
+      const apiKey = localStorage.getItem('meu_financeiro_gemini_key') || '';
+      const reply = await AIService.handleChatQuery(queryText, {
+        metrics: viewData.metrics,
+        categories: viewData.categories,
+        transactions: viewData.transactions,
+        goals: viewData.goals,
+        debts: viewData.debts,
+        subscriptions: viewData.subscriptions,
+        apiKey,
+      });
+
+      botMsg.querySelector('div').innerHTML = reply.replace(/\n/g, '<br>');
+      container.scrollTop = container.scrollHeight;
+    };
+
+    document.getElementById('floatingChatForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('floatingChatInput');
+      const text = input.value;
+      input.value = '';
+      handleChatSubmit(text, 'floatingChatMessages');
+    });
+
+    document.querySelectorAll('.chat-quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const q = btn.getAttribute('data-question');
+        handleChatSubmit(q, 'floatingChatMessages');
+      });
     });
 
     // Outros listeners gerais
@@ -638,6 +754,10 @@ class App {
       this.showToast('CSV exportado!');
     });
 
+    document.getElementById('btnPrintPDF')?.addEventListener('click', () => {
+      window.print();
+    });
+
     document.getElementById('btnLoadDemoData')?.addEventListener('click', async () => {
       if (confirm('Carregar dados de demonstração em BRL?')) {
         await loadDemoDataset(db, userId);
@@ -655,7 +775,6 @@ class App {
     });
   }
 
-  // Helper para ler arquivo de extrato
   processStatementFile(file, viewData) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -674,7 +793,7 @@ class App {
     const confirmBtn = document.getElementById('btnConfirmImport');
 
     if (transactions.length === 0) {
-      this.showToast('Nenhuma transação válida identificada no arquivo.', 'error');
+      this.showToast('Nenhuma transação válida identificada.', 'error');
       return;
     }
 
@@ -717,7 +836,6 @@ class App {
       </tr>
     `).join('');
 
-    // Listeners nos checkboxes da tabela
     tbody.querySelectorAll('.stmt-check').forEach(chk => {
       chk.addEventListener('change', (e) => {
         const idx = parseInt(e.target.getAttribute('data-index'), 10);

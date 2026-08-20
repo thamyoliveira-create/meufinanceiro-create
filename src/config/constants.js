@@ -2,7 +2,7 @@
 
 export const APP_CONFIG = {
   name: 'Meu Financeiro IA',
-  version: '1.0.0',
+  version: '1.2.0',
   storagePrefix: 'meu_financeiro_ia_',
   currency: 'BRL',
   locale: 'pt-BR',
@@ -14,6 +14,13 @@ export const TRANSACTION_TYPES = {
   EXPENSE: 'expense',
   INCOME: 'income',
   TRANSFER: 'transfer',
+};
+
+// Classificação para a Regra 50 / 30 / 20
+export const RULE_50_30_20_MAP = {
+  needs: ['moradia', 'alimentação', 'transporte', 'saúde', 'educação', 'contas'], // 50% Necessidades
+  wants: ['lazer', 'assinaturas', 'compras', 'viagem', 'passeios', 'jogos', 'restaurante'], // 30% Estilo de Vida
+  savings: ['investimentos', 'reserva', 'dívidas', 'aportes', 'previdência'], // 20% Futuro
 };
 
 export const PAYMENT_METHODS = [
@@ -29,57 +36,17 @@ export const PAYMENT_METHODS = [
 export const ACCOUNT_TYPES = [
   { id: 'checking', label: 'Conta Corrente', icon: 'landmark', color: '#3B82F6' },
   { id: 'savings', label: 'Conta Poupança', icon: 'piggy-bank', color: '#10B981' },
-  { id: 'digital_wallet', label: 'Carteira Digital (Nubank/Inter/Mercado Pago)', icon: 'smartphone', color: '#8B5CF6' },
-  { id: 'investment', label: 'Conta de Investimentos (XP/BTG/Clear)', icon: 'trending-up', color: '#F59E0B' },
+  { id: 'digital_wallet', label: 'Carteira Digital', icon: 'smartphone', color: '#8B5CF6' },
+  { id: 'investment', label: 'Conta de Investimentos', icon: 'trending-up', color: '#F59E0B' },
   { id: 'cash', label: 'Dinheiro em Espécie', icon: 'banknote', color: '#06B6D4' },
   { id: 'other', label: 'Outra Conta', icon: 'wallet', color: '#6B7280' },
 ];
 
-export const RECURRENCE_FREQUENCIES = [
-  { id: 'weekly', label: 'Semanal' },
-  { id: 'biweekly', label: 'Quinzenal' },
-  { id: 'monthly', label: 'Mensal' },
-  { id: 'quarterly', label: 'Trimestral' },
-  { id: 'yearly', label: 'Anual' },
-];
-
-export const GOAL_CATEGORIES = [
-  { id: 'emergency', label: 'Reserva de Emergência', icon: 'shield-alert', color: '#10B981' },
-  { id: 'travel', label: 'Viagem', icon: 'plane', color: '#3B82F6' },
-  { id: 'car', label: 'Carro / Veículo', icon: 'car', color: '#8B5CF6' },
-  { id: 'house', label: 'Casa Própria / Reforma', icon: 'home', color: '#F59E0B' },
-  { id: 'debt_payoff', label: 'Quitar Dívidas', icon: 'trending-down', color: '#EF4444' },
-  { id: 'custom', label: 'Outro Objetivo', icon: 'target', color: '#6366F1' },
-];
-
-export const INVESTMENT_TYPES = [
-  { id: 'tesouro', label: 'Tesouro Direto' },
-  { id: 'cdb', label: 'CDB / LC' },
-  { id: 'stocks', label: 'Ações (B3)' },
-  { id: 'funds', label: 'Fundos Imobiliários (FIIs) / Multimercado' },
-  { id: 'etf', label: 'ETFs' },
-  { id: 'crypto', label: 'Criptomoedas (Bitcoin/ETH)' },
-  { id: 'savings', label: 'Poupança' },
-  { id: 'other', label: 'Outros Investimentos' },
-];
-
-export const ASSET_TYPES = [
-  { id: 'cash', label: 'Dinheiro / Saldos' },
-  { id: 'investments', label: 'Investimentos Financeiros' },
-  { id: 'real_estate', label: 'Imóveis' },
-  { id: 'vehicles', label: 'Veículos' },
-  { id: 'other', label: 'Outros Bens' },
-];
-
-export const LIABILITY_TYPES = [
-  { id: 'financing', label: 'Financiamento Imobiliário / Veicular' },
-  { id: 'loan', label: 'Empréstimo Pessoal' },
-  { id: 'card_debt', label: 'Dívida de Cartão' },
-  { id: 'other', label: 'Outro Passivo' },
-];
-
 export const FORMATTERS = {
-  formatCurrency(value) {
+  formatCurrency(value, forcePrivacy = false) {
+    if (forcePrivacy || window.__meuFinanceiroPrivacyMode) {
+      return 'R$ ••••••';
+    }
     const num = Number(value) || 0;
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',

@@ -1,7 +1,8 @@
-// Componente de Barra de Topo Minimalista - Meu Financeiro IA
+// Componente de Barra de Topo Minimalista com Modo Privacidade - Meu Financeiro IA
 
 export function renderNavbar(title, user, notifications = [], isDemoActive = false) {
   const unreadCount = notifications.filter(n => !n.isRead).length;
+  const isPrivacyOn = window.__meuFinanceiroPrivacyMode;
 
   return `
     <header class="h-16 border-b border-white/[0.06] bg-[#090A0D]/70 backdrop-blur-xl sticky top-0 z-20 px-4 lg:px-8 flex items-center justify-between gap-4">
@@ -15,7 +16,12 @@ export function renderNavbar(title, user, notifications = [], isDemoActive = fal
         </div>
       </div>
 
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-2">
+        <!-- Botão Olho Mágico (Modo Privacidade) -->
+        <button id="btnTogglePrivacy" class="p-2 rounded-lg ${isPrivacyOn ? 'text-emerald-400 bg-white/10' : 'text-zinc-400 hover:text-white hover:bg-white/5'} transition-colors" title="${isPrivacyOn ? 'Mostrar Saldos' : 'Ocultar Saldos (Modo Privacidade)'}">
+          <i data-lucide="${isPrivacyOn ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
+        </button>
+
         <!-- Botão Registrar Gasto Minimalista -->
         <button id="btnQuickAddExpense" class="btn-primary py-1.5 px-3 text-xs">
           <i data-lucide="plus" class="w-3.5 h-3.5"></i>
