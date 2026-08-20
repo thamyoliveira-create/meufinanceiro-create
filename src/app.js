@@ -21,6 +21,7 @@ import { renderQuickAddModal } from './components/QuickAddModal.js';
 import { renderOnboardingModal } from './components/OnboardingModal.js';
 import { renderAiChatFloating } from './components/AiChatFloating.js';
 import { renderImportStatementModal } from './components/ImportStatementModal.js';
+import { renderEditTransactionModal } from './components/EditTransactionModal.js';
 
 // Visões
 import { renderAuthView } from './components/views/AuthView.js';
@@ -249,6 +250,7 @@ class App {
 
         <!-- Modais -->
         ${renderQuickAddModal(categories, accounts, creditCards)}
+        ${renderEditTransactionModal(categories, accounts)}
         ${renderImportStatementModal(accounts, categories)}
         ${renderOnboardingModal()}
         ${renderAiChatFloating()}
@@ -806,6 +808,122 @@ class App {
       } catch (err) {
         console.error('Erro no onboarding:', err);
         await dismissOnboarding();
+        await this.renderApp();
+      }
+    });
+
+    // ==========================================
+    // EDIÇÃO DIRETA E EM LOTE DE CATEGORIAS
+    // ==========================================
+    // 1. Alteração Direta no Select da Tabela
+    document.querySelectorAll('.change-cat-select').forEach(sel => {
+      sel.addEventListener('change', async (e) => {
+        const txId = e.target.getAttribute('data-id');
+        const newCatId = e.target.value;
+        const tx = await db.getById('transactions', txId);
+        if (tx) {
+          tx.categoryId = newCatId;
+          await db.saveTransaction(tx, userId);
+          const catName = viewData.categories.find(c => c.id === newCatId)?.name || 'Categoria';
+          this.showToast(`Categoria alterada para "${catName}"!`);
+          await this.renderApp();
+        }
+      });
+    });
+
+    // 2. Seleção em Lote (Checkboxes)
+    const updateBulkBar = () => {
+      const checked = document.querySelectorAll('.tx-row-check:checked');
+      const bulkBar = document.getElementById('bulkActionsBar');
+      const countSpan = document.getElementById('bulkSelectedCount');
+      if (bulkBar && countSpan) {
+        if (checked.length > 0) {
+          bulkBar.classList.remove('hidden');
+          countSpan.textContent = `${checked.length} transações selecionadas`;
+        } else {
+          bulkBar.classList.add('hidden');
+        }
+      }
+    };
+
+    document.getElementById('checkSelectAllTx')?.addEventListener('change', (e) => {
+      document.querySelectorAll('.tx-row-check').forEach(chk => {
+        chk.checked = e.target.checked;
+      });
+      updateBulkBar();
+    });
+
+    document.querySelectorAll('.tx-row-check').forEach(chk => {
+      chk.addEventListener('change', updateBulkBar);
+    });
+
+    // 3. Aplicar Categoria em Lote
+    document.getElementById('btnApplyBulkCategory')?.addEventListener('click', async () => {
+      const checked = document.querySelectorAll('.tx-row-check:checked');
+      const newCatId = document.getElementById('bulkCategorySelect')?.value;
+      if (checked.length === 0 || !newCatId) return;
+
+      for (const chk of checked) {
+        const txId = chk.getAttribute('data-id');
+        const tx = await db.getById('transactions', txId);
+        if (tx) {
+          tx.categoryId = newCatId;
+          await db.saveTransaction(tx, userId);
+        }
+      }
+      const catName = viewData.categories.find(c => c.id === newCatId)?.name || 'Categoria';
+      this.showToast(`${checked.length} transações alteradas para "${catName}"!`);
+      await this.renderApp();
+    });
+
+    // 4. Excluir Selecionadas em Lote
+    document.getElementById('btnDeleteBulkSelected')?.addEventListener('click', async () => {
+      const checked = document.querySelectorAll('.tx-row-check:checked');
+      if (checked.length === 0) return;
+      if (confirm(`Excluir as ${checked.length} transações selecionadas?`)) {
+        for (const chk of checked) {
+          const txId = chk.getAttribute('data-id');
+          await db.deleteTransaction(txId, userId);
+        }
+        this.showToast(`${checked.length} transações excluídas com sucesso.`);
+        await this.renderApp();
+      }
+    });
+
+    // 5. Modal de Edição Detalhada
+    const modalEditTx = document.getElementById('editTransactionModal');
+    document.querySelectorAll('.btn-edit-tx').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const tx = await db.getById('transactions', id);
+        if (tx) {
+          document.getElementById('editTxId').value = tx.id;
+          document.getElementById('editTxDescription').value = tx.description;
+          document.getElementById('editTxAmount').value = tx.amount;
+          document.getElementById('editTxDate').value = tx.date;
+          if (tx.categoryId) document.getElementById('editTxCategory').value = tx.categoryId;
+          if (tx.accountId) document.getElementById('editTxAccount').value = tx.accountId;
+          modalEditTx?.classList.remove('hidden');
+        }
+      });
+    });
+
+    document.getElementById('btnCloseEditTx')?.addEventListener('click', () => modalEditTx?.classList.add('hidden'));
+    document.getElementById('btnCancelEditTx')?.addEventListener('click', () => modalEditTx?.classList.add('hidden'));
+
+    document.getElementById('editTxForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editTxId').value;
+      const tx = await db.getById('transactions', id);
+      if (tx) {
+        tx.description = document.getElementById('editTxDescription').value;
+        tx.amount = parseFloat(document.getElementById('editTxAmount').value);
+        tx.date = document.getElementById('editTxDate').value;
+        tx.categoryId = document.getElementById('editTxCategory').value;
+        tx.accountId = document.getElementById('editTxAccount').value;
+        await db.saveTransaction(tx, userId);
+        this.showToast('Transação atualizada com sucesso!');
+        modalEditTx?.classList.add('hidden');
         await this.renderApp();
       }
     });

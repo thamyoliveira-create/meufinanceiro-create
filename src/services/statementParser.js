@@ -18,7 +18,7 @@ export const StatementParser = {
     }
   },
 
-  // Parser Especializado para Arquivos PDF (Extratos e Faturas Bancárias)
+  // Parser Especializado para Arquivos PDF
   async parsePDF(arrayBuffer, targetAccountId, categories = [], existingTransactions = []) {
     if (!window.pdfjsLib) {
       throw new Error('Biblioteca PDF.js não carregada.');
@@ -34,17 +34,15 @@ export const StatementParser = {
       const page = await pdfDoc.getPage(pageNum);
       const textContent = await page.getTextContent();
       
-      // Agrupa os itens de texto por coordenada Y (linhas visuais da página)
       const lineMap = new Map();
       textContent.items.forEach(item => {
-        const y = Math.round(item.transform[5]); // Coordenada vertical
+        const y = Math.round(item.transform[5]);
         if (!lineMap.has(y)) {
           lineMap.set(y, []);
         }
         lineMap.get(y).push({ x: item.transform[4], str: item.str });
       });
 
-      // Ordena as linhas do topo para a base da página
       const sortedY = Array.from(lineMap.keys()).sort((a, b) => b - a);
 
       sortedY.forEach(y => {
@@ -93,7 +91,7 @@ export const StatementParser = {
       }
 
       const cleanDesc = this._cleanDescription(memo);
-      const suggestedCategory = this._suggestCategory(cleanDesc, type, categories);
+      const suggestedCategory = this._suggestCategory(cleanDesc, type, categories, existingTransactions);
 
       const isDuplicate = existingTransactions.some(t => 
         t.date === date && 
@@ -122,7 +120,7 @@ export const StatementParser = {
     return transactions;
   },
 
-  // Parser para Extratos em CSV, Texto e Conteúdo de PDF
+  // Parser para Extratos em CSV, Texto e PDF
   parseCSVOrText(content, targetAccountId, categories = [], existingTransactions = []) {
     const lines = content.split(/\r\n|\n/).map(l => l.trim()).filter(l => l.length > 0);
     if (lines.length === 0) return [];
@@ -131,10 +129,9 @@ export const StatementParser = {
     const currentYear = new Date().getFullYear();
 
     lines.forEach((line, index) => {
-      // Ignora cabeçalhos institucionais comuns
-      if (/saldo anterior|saldo final|extrato de conta|rendimento liquido|periodo:|folha de cheque|total da fatura/i.test(line)) return;
+      if (/saldo anterior|saldo final|extrato de conta|rendimento liquido|periodo:|folha de cheque|total da fatura|limite total/i.test(line)) return;
 
-      // 1. Localiza Data (DD/MM/AAAA, DD/MM, ou DD MMM como 15 AGO)
+      // 1. Data
       let date = null;
       const fullDateMatch = line.match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
       const shortDateMatch = line.match(/\b(\d{2})\/(\d{2})\b/);
@@ -151,13 +148,13 @@ export const StatementParser = {
         date = `${currentYear}-${m}-${d}`;
       }
 
-      if (!date) return; // Se a linha não tem data, não é uma transação individual
+      if (!date) return;
 
-      // 2. Localiza Valor em Reais (ex: R$ 150,00 | -150,00 | 150,00 D | 150.00)
+      // 2. Valor
       const amountMatches = line.match(/(?:R\$\s*)?(-?\d{1,3}(?:\.\d{3})*,\d{2}|-?\d+[.,]\d{2})\s*(D|C|\+|-)?/gi);
       if (!amountMatches) return;
 
-      const lastMatch = amountMatches[amountMatches.length - 1]; // Geralmente o valor está no final da linha
+      const lastMatch = amountMatches[amountMatches.length - 1];
       let cleanValStr = lastMatch.replace(/R\$|\s/gi, '').replace(/\./g, '').replace(',', '.');
       
       let numAmount = parseFloat(cleanValStr);
@@ -168,7 +165,7 @@ export const StatementParser = {
 
       let isIncome = isCreditExplicit && !isDebitExplicit;
       if (!isCreditExplicit && !isDebitExplicit) {
-        if (/recebi|salario|pix recebido|deposito|ted recebida|rendimento/i.test(line)) {
+        if (/recebi|salario|pix recebido|deposito|ted recebida|rendimento|estorno/i.test(line)) {
           isIncome = true;
         }
       }
@@ -176,7 +173,7 @@ export const StatementParser = {
       const absAmount = Math.abs(numAmount);
       const type = isIncome ? 'income' : 'expense';
 
-      // 3. Limpa a Descrição removendo data e valor
+      // 3. Descrição
       let desc = line
         .replace(/\b\d{2}\/\d{2}(?:\/\d{4})?\b/g, '')
         .replace(/\b\d{1,2}\s+(?:JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ)\b/gi, '')
@@ -187,7 +184,7 @@ export const StatementParser = {
       if (!desc || desc.length < 2) desc = `Lançamento Bancário #${index}`;
 
       const cleanDesc = this._cleanDescription(desc);
-      const suggestedCategory = this._suggestCategory(cleanDesc, type, categories);
+      const suggestedCategory = this._suggestCategory(cleanDesc, type, categories, existingTransactions);
 
       const isDuplicate = existingTransactions.some(t => 
         t.date === date && 
@@ -220,6 +217,8 @@ export const StatementParser = {
       .replace(/PAGAMENTO\s+(?:DE\s+TITULO|PIX|BOLETO|CONTA)?/gi, '')
       .replace(/TRANSFERENCIA\s+(?:ENVIADA|RECEBIDA|PIX)?/gi, '')
       .replace(/PIX\s+(?:ENVIADO|RECEBIDO)?/gi, '')
+      .replace(/TED\s+(?:ENVIADA|RECEBIDA|DOC)?/gi, '')
+      .replace(/DOC\s+(?:ENVIADO|RECEBIDO)?/gi, '')
       .replace(/[*#_]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
@@ -228,21 +227,61 @@ export const StatementParser = {
     return clean.charAt(0).toUpperCase() + clean.slice(1);
   },
 
-  _suggestCategory(text, type, categories = []) {
+  // Sugestão Inteligente de Categorias com Amplo Dicionário Bancário Brasileiro
+  _suggestCategory(text, type, categories = [], existingTransactions = []) {
     const clean = text.toLowerCase();
     const typeCats = categories.filter(c => c.type === type);
 
+    // 1. Verifica se o usuário já categorizou algo parecido no passado (Aprendizado com Histórico)
+    if (existingTransactions && existingTransactions.length > 0) {
+      const pastMatch = existingTransactions.find(t => 
+        t.type === type && 
+        t.categoryId && 
+        t.description && 
+        clean.includes(t.description.toLowerCase().slice(0, 5))
+      );
+      if (pastMatch) {
+        const found = typeCats.find(c => c.id === pastMatch.categoryId);
+        if (found) return found;
+      }
+    }
+
+    // 2. Dicionário Brasileiro Completo de Palavras-Chave
     const rules = [
-      { regex: /ifood|uber eats|restaurante|burger|pizza|padaria|mcdonald|subway|habib|outback|lanches/i, match: 'alimenta' },
-      { regex: /mercado|supermercado|carrefour|pao de acucar|assai|atacad|extra|hortifruti/i, match: 'alimenta' },
-      { regex: /uber|99|taxi|posto|shell|ipiranga|combustivel|estacionamento|pedagio|sem parar/i, match: 'transporte' },
-      { regex: /enel|sabesp|comgas|luz|energia|agua|aluguel|condominio|iptu|internet|claro|vivo|tim/i, match: 'moradia' },
-      { regex: /farmacia|droga raia|drogasil|pague menos|drogaria|consulta|medico|dentista|laboratorio/i, match: 'saude' },
-      { regex: /netflix|spotify|amazon prime|disney|apple|google|youtube|smartfit|academia/i, match: 'assinatura' },
-      { regex: /cinema|cinemark|ingresso|show|teatro|sympla|eventim|bar|cervejaria/i, match: 'lazer' },
-      { regex: /amazon|mercado livre|shopee|magalu|aliexpress|zara|renner|riachuelo|nike|centauro/i, match: 'compra' },
-      { regex: /salario|pro labore|remuneracao|folha|rendimento/i, match: 'salario' },
-      { regex: /freela|servico|consultoria|honorarios/i, match: 'renda extra' },
+      // Transporte & Combustível
+      { regex: /uber|99app|99pop|99 taxi|taxi|cabify|posto|shell|ipiranga|petrobras|br distribuidora|combustivel|gasolina|etanol|estacionamento|estapar|sem parar|veloe|conectcar|pedagio|auto posto|borracharia|oficina/i, match: 'transporte' },
+      
+      // Alimentação & Restaurantes
+      { regex: /ifood|uber eats|rappi|restaurante|burger|pizza|pizzaria|padaria|panificadora|mcdonald|subway|habib|outback|lanches|pastelaria|churrascaria|acai|sorveteria|cafeteria|starbucks|bar e lanches|bistrô|gastronomia/i, match: 'alimenta' },
+      
+      // Supermercados & Mercearias
+      { regex: /mercado|supermercado|hipermercado|carrefour|pao de acucar|assai|atacad|extra|hortifruti|sacolao|sonda|dia brasil|mambo|mercadinho|mercearia/i, match: 'alimenta' },
+      
+      // Moradia & Contas Básicas
+      { regex: /enel|sabesp|comgas|light|copel|cemig|sanepar|cedae|energia|luz|agua|aluguel|condominio|iptu|internet|claro|vivo|tim|oi|net servicos|gas|gás|eletropaulo/i, match: 'moradia' },
+      
+      // Saúde & Cuidados
+      { regex: /farmacia|droga raia|drogasil|pague menos|drogaria|sao paulo|panvel|ultrafarma|consulta|medico|dentista|odontologia|laboratorio|fleury|lavoisier|delboni|hospital|clinica|psicolog|otica|exame/i, match: 'saúde' },
+      
+      // Assinaturas & Streaming
+      { regex: /netflix|spotify|amazon prime|disney|hbo|max|apple\.com|google play|youtube premium|deezer|smartfit|academia|bluefit|globo|chatgpt|openai/i, match: 'assinatura' },
+      
+      // Lazer & Entretenimento
+      { regex: /cinema|cinemark|cinepolis|ingresso|show|teatro|sympla|eventim|bar|cervejaria|pub|hotel|airbnb|booking|viagem|passagem|latam|gol|azul/i, match: 'lazer' },
+      
+      // Compras & Vestuário & Eletrônicos
+      { regex: /amazon|mercado livre|shopee|magalu|magazine luiza|aliexpress|shein|zara|renner|riachuelo|c&a|nike|centauro|kabum|pichau|kalunga|leroy merlin|tok&stok/i, match: 'compra' },
+      
+      // Educação & Cursos
+      { regex: /udemy|alura|faculdade|universidade|escola|colegio|curso|livraria|saraiva|cultura|idiomas/i, match: 'educa' },
+
+      // Serviços Financeiros / Tarifas / Impostos
+      { regex: /tarifa|iof|manutencao conta|anuidade|juros|multa|receita federal|darf|tributo/i, match: 'outros' },
+      
+      // Receitas
+      { regex: /salario|pro labore|remuneracao|folha|rendimento|provimento/i, match: 'salário' },
+      { regex: /freela|servico|consultoria|honorarios|comissao|venda/i, match: 'renda extra' },
+      { regex: /dividendo|jcp|rendimento aplicacao|resgate/i, match: 'investimento' },
     ];
 
     for (const rule of rules) {
@@ -252,7 +291,11 @@ export const StatementParser = {
       }
     }
 
-    const defaultCat = typeCats[0] || { id: null, name: type === 'income' ? 'Outras Receitas' : 'Outros Gastos' };
+    // Se não encontrou regra específica, tenta associar a 'Outros' ou 'Geral' em vez de Alimentação
+    const outrosCat = typeCats.find(c => /outr|geral|diverso/i.test(c.name));
+    if (outrosCat) return outrosCat;
+
+    const defaultCat = typeCats[typeCats.length - 1] || { id: null, name: type === 'income' ? 'Outras Receitas' : 'Outros Gastos' };
     return defaultCat;
   }
 };
