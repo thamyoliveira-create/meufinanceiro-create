@@ -119,6 +119,17 @@ class DatabaseService {
     });
   }
 
+  // Alias para persistência universal
+  async save(storeName, item) {
+    return this.put(storeName, item);
+  }
+
+  // Salvar conta bancária
+  async saveAccount(account, userId) {
+    account.userId = userId;
+    return this.put('accounts', account);
+  }
+
   // Deletar Registro por ID
   async delete(storeName, id) {
     if (!this.db) await this.init();

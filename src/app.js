@@ -1337,6 +1337,14 @@ class App {
       }
     });
 
+    // Fechamento no backdrop para todos os modais
+    ['billModal', 'accountModal', 'cardModal', 'goalModal', 'debtModal', 'investmentModal', 'subscriptionModal', 'editTransactionModal'].forEach(mId => {
+      const el = document.getElementById(mId);
+      el?.addEventListener('click', (e) => {
+        if (e.target === el) el.classList.add('hidden');
+      });
+    });
+
     // Outros listeners gerais
     document.querySelectorAll('.btn-delete-tx').forEach(btn => {
       btn.addEventListener('click', async () => {
