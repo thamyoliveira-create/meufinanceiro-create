@@ -729,6 +729,61 @@ class App {
       });
     });
 
+    // ==========================================
+    // MODAL DE ONBOARDING GUIADO
+    // ==========================================
+    const modalOnboarding = document.getElementById('onboardingModal');
+    const dismissOnboarding = async () => {
+      this.user.onboardingCompleted = true;
+      await db.save('users', this.user);
+      auth.currentUser = this.user;
+      sessionStorage.setItem('meu_financeiro_session', JSON.stringify(this.user));
+      modalOnboarding?.classList.add('hidden');
+    };
+
+    document.getElementById('btnSkipOnboarding')?.addEventListener('click', dismissOnboarding);
+    document.getElementById('btnSkipOnboardingFooter')?.addEventListener('click', dismissOnboarding);
+
+    document.getElementById('btnSaveOnboarding')?.addEventListener('click', async () => {
+      try {
+        const accName = document.getElementById('onbAccountName')?.value.trim();
+        const accBalance = parseFloat(document.getElementById('onbAccountBalance')?.value || '0');
+        const cardName = document.getElementById('onbCardName')?.value.trim();
+        const cardLimit = parseFloat(document.getElementById('onbCardLimit')?.value || '0');
+
+        if (accName) {
+          await db.saveAccount({
+            userId: this.user.id,
+            name: accName,
+            type: 'checking',
+            initialBalance: isNaN(accBalance) ? 0 : accBalance,
+            currentBalance: isNaN(accBalance) ? 0 : accBalance,
+            color: '#3B82F6',
+            icon: 'landmark',
+          }, this.user.id);
+        }
+
+        if (cardName) {
+          await db.save('credit_cards', {
+            userId: this.user.id,
+            name: cardName,
+            limit: isNaN(cardLimit) ? 1000 : cardLimit,
+            closingDay: 5,
+            dueDay: 12,
+            color: '#8B5CF6',
+          });
+        }
+
+        await dismissOnboarding();
+        this.showToast('Configuração concluída com sucesso!');
+        await this.renderApp();
+      } catch (e) {
+        console.error('Erro no onboarding:', e);
+        await dismissOnboarding();
+        await this.renderApp();
+      }
+    });
+
     // Outros listeners gerais
     document.querySelectorAll('.btn-delete-tx').forEach(btn => {
       btn.addEventListener('click', async () => {
