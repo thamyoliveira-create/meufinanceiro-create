@@ -22,6 +22,7 @@ import { renderOnboardingModal } from './components/OnboardingModal.js';
 import { renderAiChatFloating } from './components/AiChatFloating.js';
 import { renderImportStatementModal } from './components/ImportStatementModal.js';
 import { renderEditTransactionModal } from './components/EditTransactionModal.js';
+import { renderEntityModals } from './components/EntityModals.js';
 
 // Visões
 import { renderAuthView } from './components/views/AuthView.js';
@@ -251,6 +252,7 @@ class App {
         <!-- Modais -->
         ${renderQuickAddModal(categories, accounts, creditCards)}
         ${renderEditTransactionModal(categories, accounts)}
+        ${renderEntityModals(categories, accounts)}
         ${renderImportStatementModal(accounts, categories)}
         ${renderOnboardingModal()}
         ${renderAiChatFloating()}
@@ -983,6 +985,355 @@ class App {
         this.showToast('Transação atualizada com sucesso!');
         modalEditTx?.classList.add('hidden');
         await this.renderApp();
+      }
+    });
+
+    // ==========================================
+    // MODAIS DE ENTIDADES (CONTAS A PAGAR, BANCOS, CARTÕES, ETC.)
+    // ==========================================
+    // 1. Contas a Pagar & Contas a Receber
+    const modalBill = document.getElementById('billModal');
+    document.getElementById('btnOpenNewBillModal')?.addEventListener('click', () => {
+      document.getElementById('billKind').value = 'bill';
+      document.getElementById('billModalTitle').textContent = 'Nova Conta a Pagar';
+      document.getElementById('billDateLabel').textContent = 'Data de Vencimento';
+      document.getElementById('billDueDate').value = FORMATTERS.toIsoDate();
+      modalBill?.classList.remove('hidden');
+    });
+
+    document.getElementById('btnOpenNewReceivableModal')?.addEventListener('click', () => {
+      document.getElementById('billKind').value = 'receivable';
+      document.getElementById('billModalTitle').textContent = 'Nova Conta a Receber (Previsão)';
+      document.getElementById('billDateLabel').textContent = 'Data Prevista';
+      document.getElementById('billDueDate').value = FORMATTERS.toIsoDate();
+      modalBill?.classList.remove('hidden');
+    });
+
+    document.getElementById('btnCloseBillModal')?.addEventListener('click', () => modalBill?.classList.add('hidden'));
+    document.getElementById('btnCancelBillModal')?.addEventListener('click', () => modalBill?.classList.add('hidden'));
+
+    document.getElementById('billForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const kind = document.getElementById('billKind').value;
+        const description = document.getElementById('billDescription').value.trim();
+        const amount = parseFloat(document.getElementById('billAmount').value);
+        const dueDate = document.getElementById('billDueDate').value;
+        const categoryId = document.getElementById('billCategory').value;
+        const recurrence = document.getElementById('billRecurrence').value;
+
+        if (kind === 'bill') {
+          await db.save('bills', {
+            userId,
+            description,
+            amount,
+            dueDate,
+            categoryId,
+            recurrence,
+            status: 'pending',
+          });
+          this.showToast('Conta a pagar cadastrada com sucesso!');
+        } else {
+          await db.save('income_receivables', {
+            userId,
+            description,
+            amount,
+            expectedDate: dueDate,
+            categoryId,
+            recurrence,
+            status: 'pending',
+          });
+          this.showToast('Conta a receber cadastrada com sucesso!');
+        }
+
+        modalBill?.classList.add('hidden');
+        document.getElementById('billForm').reset();
+        await this.renderApp();
+      } catch (err) {
+        this.showToast('Erro ao salvar conta: ' + err.message, 'error');
+      }
+    });
+
+    // Pagar Conta (Efetivar)
+    document.querySelectorAll('.btn-mark-bill-paid').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const bill = await db.getById('bills', id);
+        if (bill) {
+          bill.status = 'paid';
+          bill.paidAt = new Date().toISOString();
+          await db.save('bills', bill);
+
+          // Gera lançamento automático de despesa no extrato
+          await db.saveTransaction({
+            userId,
+            type: 'expense',
+            description: `Pagamento: ${bill.description}`,
+            amount: bill.amount,
+            categoryId: bill.categoryId,
+            date: FORMATTERS.toIsoDate(),
+            paymentMethod: 'pix',
+            isPaid: true,
+            notes: 'Efetivação de conta a pagar',
+          }, userId);
+
+          this.showToast(`Conta "${bill.description}" marcada como paga e debitada no saldo!`);
+          await this.renderApp();
+        }
+      });
+    });
+
+    // Receber Conta (Efetivar)
+    document.querySelectorAll('.btn-mark-rec-received').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const rec = await db.getById('income_receivables', id);
+        if (rec) {
+          rec.status = 'received';
+          rec.receivedAt = new Date().toISOString();
+          await db.save('income_receivables', rec);
+
+          // Gera lançamento automático de receita
+          await db.saveTransaction({
+            userId,
+            type: 'income',
+            description: `Recebimento: ${rec.description}`,
+            amount: rec.amount,
+            categoryId: rec.categoryId,
+            date: FORMATTERS.toIsoDate(),
+            paymentMethod: 'pix',
+            isPaid: true,
+            notes: 'Efetivação de conta a receber',
+          }, userId);
+
+          this.showToast(`Recebimento "${rec.description}" efetivado com sucesso!`);
+          await this.renderApp();
+        }
+      });
+    });
+
+    // Excluir Conta a Pagar
+    document.querySelectorAll('.btn-delete-bill').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (confirm('Excluir esta conta a pagar?')) {
+          await db.delete('bills', id);
+          this.showToast('Conta a pagar excluída.');
+          await this.renderApp();
+        }
+      });
+    });
+
+    // Excluir Conta a Receber
+    document.querySelectorAll('.btn-delete-rec').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (confirm('Excluir esta conta a receber?')) {
+          await db.delete('income_receivables', id);
+          this.showToast('Recebível excluído.');
+          await this.renderApp();
+        }
+      });
+    });
+
+    // 2. Contas Bancárias
+    const modalAccount = document.getElementById('accountModal');
+    document.getElementById('btnOpenNewAccountModal')?.addEventListener('click', () => modalAccount?.classList.remove('hidden'));
+    document.getElementById('btnCloseAccountModal')?.addEventListener('click', () => modalAccount?.classList.add('hidden'));
+    document.getElementById('btnCancelAccountModal')?.addEventListener('click', () => modalAccount?.classList.add('hidden'));
+
+    document.getElementById('accountForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const name = document.getElementById('accModalName').value.trim();
+        const type = document.getElementById('accModalType').value;
+        const balance = parseFloat(document.getElementById('accModalBalance').value || '0');
+
+        await db.saveAccount({
+          userId,
+          name,
+          type,
+          initialBalance: balance,
+          currentBalance: balance,
+          color: '#3B82F6',
+          icon: 'landmark',
+        }, userId);
+
+        this.showToast(`Conta "${name}" criada com sucesso!`);
+        modalAccount?.classList.add('hidden');
+        document.getElementById('accountForm').reset();
+        await this.renderApp();
+      } catch (err) {
+        this.showToast('Erro ao criar conta: ' + err.message, 'error');
+      }
+    });
+
+    // 3. Cartões de Crédito
+    const modalCard = document.getElementById('cardModal');
+    document.getElementById('btnOpenNewCardModal')?.addEventListener('click', () => modalCard?.classList.remove('hidden'));
+    document.getElementById('btnCloseCardModal')?.addEventListener('click', () => modalCard?.classList.add('hidden'));
+    document.getElementById('btnCancelCardModal')?.addEventListener('click', () => modalCard?.classList.add('hidden'));
+
+    document.getElementById('cardForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const name = document.getElementById('cardModalName').value.trim();
+        const limit = parseFloat(document.getElementById('cardModalLimit').value || '1000');
+        const closingDay = parseInt(document.getElementById('cardModalClosing').value || '5', 10);
+        const dueDay = parseInt(document.getElementById('cardModalDue').value || '12', 10);
+
+        await db.save('credit_cards', {
+          userId,
+          name,
+          limit,
+          closingDay,
+          dueDay,
+          color: '#8B5CF6',
+        });
+
+        this.showToast(`Cartão "${name}" cadastrado com sucesso!`);
+        modalCard?.classList.add('hidden');
+        document.getElementById('cardForm').reset();
+        await this.renderApp();
+      } catch (err) {
+        this.showToast('Erro ao criar cartão: ' + err.message, 'error');
+      }
+    });
+
+    // 4. Metas Financeiras
+    const modalGoal = document.getElementById('goalModal');
+    document.getElementById('btnOpenNewGoalModal')?.addEventListener('click', () => {
+      document.getElementById('goalModalDeadline').value = FORMATTERS.toIsoDate();
+      modalGoal?.classList.remove('hidden');
+    });
+    document.getElementById('btnCloseGoalModal')?.addEventListener('click', () => modalGoal?.classList.add('hidden'));
+    document.getElementById('btnCancelGoalModal')?.addEventListener('click', () => modalGoal?.classList.add('hidden'));
+
+    document.getElementById('goalForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const name = document.getElementById('goalModalName').value.trim();
+        const targetAmount = parseFloat(document.getElementById('goalModalTarget').value || '1000');
+        const currentAmount = parseFloat(document.getElementById('goalModalCurrent').value || '0');
+        const deadline = document.getElementById('goalModalDeadline').value;
+
+        await db.save('goals', {
+          userId,
+          name,
+          targetAmount,
+          currentAmount,
+          deadline,
+          status: 'active',
+          color: '#10B981',
+        });
+
+        this.showToast(`Meta "${name}" criada com sucesso!`);
+        modalGoal?.classList.add('hidden');
+        document.getElementById('goalForm').reset();
+        await this.renderApp();
+      } catch (err) {
+        this.showToast('Erro ao criar meta: ' + err.message, 'error');
+      }
+    });
+
+    // 5. Dívidas
+    const modalDebt = document.getElementById('debtModal');
+    document.getElementById('btnOpenNewDebtModal')?.addEventListener('click', () => modalDebt?.classList.remove('hidden'));
+    document.getElementById('btnCloseDebtModal')?.addEventListener('click', () => modalDebt?.classList.add('hidden'));
+    document.getElementById('btnCancelDebtModal')?.addEventListener('click', () => modalDebt?.classList.add('hidden'));
+
+    document.getElementById('debtForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const name = document.getElementById('debtModalDesc').value.trim();
+        const totalAmount = parseFloat(document.getElementById('debtModalAmount').value || '1000');
+        const installmentAmount = parseFloat(document.getElementById('debtModalInstallment').value || '0');
+        const interestRate = parseFloat(document.getElementById('debtModalRate').value || '1.5');
+        const totalInstallments = parseInt(document.getElementById('debtModalTotalInstallments').value || '12', 10);
+
+        await db.save('debts', {
+          userId,
+          name,
+          totalAmount,
+          remainingAmount: totalAmount,
+          installmentAmount,
+          interestRate,
+          totalInstallments,
+          remainingInstallments: totalInstallments,
+          status: 'active',
+        });
+
+        this.showToast(`Dívida "${name}" registrada com sucesso!`);
+        modalDebt?.classList.add('hidden');
+        document.getElementById('debtForm').reset();
+        await this.renderApp();
+      } catch (err) {
+        this.showToast('Erro ao registrar dívida: ' + err.message, 'error');
+      }
+    });
+
+    // 6. Investimentos
+    const modalInv = document.getElementById('investmentModal');
+    document.getElementById('btnOpenNewInvestmentModal')?.addEventListener('click', () => modalInv?.classList.remove('hidden'));
+    document.getElementById('btnCloseInvestmentModal')?.addEventListener('click', () => modalInv?.classList.add('hidden'));
+    document.getElementById('btnCancelInvestmentModal')?.addEventListener('click', () => modalInv?.classList.add('hidden'));
+
+    document.getElementById('investmentForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const name = document.getElementById('invModalName').value.trim();
+        const type = document.getElementById('invModalType').value;
+        const institution = document.getElementById('invModalInstitution').value.trim();
+        const investedAmount = parseFloat(document.getElementById('invModalInvested').value || '0');
+        const currentValue = parseFloat(document.getElementById('invModalCurrent').value || '0');
+
+        await db.save('investments', {
+          userId,
+          name,
+          type,
+          institution,
+          investedAmount,
+          currentValue,
+          lastUpdated: new Date().toISOString(),
+        });
+
+        this.showToast(`Ativo "${name}" cadastrado com sucesso!`);
+        modalInv?.classList.add('hidden');
+        document.getElementById('investmentForm').reset();
+        await this.renderApp();
+      } catch (err) {
+        this.showToast('Erro ao cadastrar ativo: ' + err.message, 'error');
+      }
+    });
+
+    // 7. Assinaturas
+    const modalSub = document.getElementById('subscriptionModal');
+    document.getElementById('btnOpenNewSubModal')?.addEventListener('click', () => modalSub?.classList.remove('hidden'));
+    document.getElementById('btnCloseSubscriptionModal')?.addEventListener('click', () => modalSub?.classList.add('hidden'));
+    document.getElementById('btnCancelSubscriptionModal')?.addEventListener('click', () => modalSub?.classList.add('hidden'));
+
+    document.getElementById('subscriptionForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const name = document.getElementById('subModalName').value.trim();
+        const amount = parseFloat(document.getElementById('subModalAmount').value || '0');
+        const billingDay = parseInt(document.getElementById('subModalDay').value || '10', 10);
+
+        await db.save('subscriptions', {
+          userId,
+          name,
+          amount,
+          billingDay,
+          periodicity: 'monthly',
+          isActive: true,
+        });
+
+        this.showToast(`Assinatura "${name}" cadastrada com sucesso!`);
+        modalSub?.classList.add('hidden');
+        document.getElementById('subscriptionForm').reset();
+        await this.renderApp();
+      } catch (err) {
+        this.showToast('Erro ao cadastrar assinatura: ' + err.message, 'error');
       }
     });
 
