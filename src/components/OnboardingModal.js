@@ -15,8 +15,8 @@ export function renderOnboardingModal() {
               <p class="text-[11px] text-zinc-400">Personalize seu ambiente financeiro em 1 minuto</p>
             </div>
           </div>
-          <button id="btnSkipOnboarding" class="text-xs text-zinc-400 hover:text-white px-2 py-1 transition-colors">
-            Pular
+          <button id="btnSkipOnboarding" class="text-xs text-zinc-400 hover:text-white px-2 py-1 transition-colors cursor-pointer" title="Fechar / Pular">
+            ✕ Pular
           </button>
         </div>
 
@@ -81,8 +81,8 @@ export function renderOnboardingModal() {
         <div class="px-6 py-3.5 border-t border-white/[0.06] bg-[#0A0C10] flex items-center justify-between">
           <p class="text-[11px] text-zinc-500">Você poderá editar tudo mais tarde.</p>
           <div class="flex items-center gap-2">
-            <button id="btnSkipOnboardingFooter" class="btn-secondary text-xs">Pular</button>
-            <button id="btnSaveOnboarding" class="btn-primary text-xs">
+            <button id="btnSkipOnboardingFooter" class="btn-secondary text-xs cursor-pointer">Pular</button>
+            <button id="btnSaveOnboarding" class="btn-primary text-xs cursor-pointer">
               <i data-lucide="check" class="w-3.5 h-3.5"></i> Concluir e Entrar
             </button>
           </div>

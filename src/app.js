@@ -734,22 +734,48 @@ class App {
     // ==========================================
     const modalOnboarding = document.getElementById('onboardingModal');
     const dismissOnboarding = async () => {
-      this.user.onboardingCompleted = true;
-      await db.save('users', this.user);
-      auth.currentUser = this.user;
-      sessionStorage.setItem('meu_financeiro_session', JSON.stringify(this.user));
+      try {
+        this.user.onboardingCompleted = true;
+        await auth.updateProfile({ onboardingCompleted: true });
+      } catch (err) {
+        console.warn('Aviso ao salvar status do onboarding:', err);
+      }
       modalOnboarding?.classList.add('hidden');
     };
 
-    document.getElementById('btnSkipOnboarding')?.addEventListener('click', dismissOnboarding);
-    document.getElementById('btnSkipOnboardingFooter')?.addEventListener('click', dismissOnboarding);
+    document.getElementById('btnSkipOnboarding')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissOnboarding();
+    });
 
-    document.getElementById('btnSaveOnboarding')?.addEventListener('click', async () => {
+    document.getElementById('btnSkipOnboardingFooter')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissOnboarding();
+    });
+
+    // Fechar ao clicar fora da janela
+    modalOnboarding?.addEventListener('click', (e) => {
+      if (e.target === modalOnboarding) {
+        dismissOnboarding();
+      }
+    });
+
+    document.getElementById('btnSaveOnboarding')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
       try {
+        const income = parseFloat(document.getElementById('onbIncome')?.value || '0');
+        const monthlyCost = parseFloat(document.getElementById('onbMonthlyCost')?.value || '0');
         const accName = document.getElementById('onbAccountName')?.value.trim();
         const accBalance = parseFloat(document.getElementById('onbAccountBalance')?.value || '0');
         const cardName = document.getElementById('onbCardName')?.value.trim();
         const cardLimit = parseFloat(document.getElementById('onbCardLimit')?.value || '0');
+
+        if (income > 0 || monthlyCost > 0) {
+          await auth.updateProfile({
+            monthlyIncome: income > 0 ? income : this.user.monthlyIncome,
+            onboardingCompleted: true,
+          });
+        }
 
         if (accName) {
           await db.saveAccount({
@@ -775,10 +801,10 @@ class App {
         }
 
         await dismissOnboarding();
-        this.showToast('Configuração concluída com sucesso!');
+        this.showToast('Configuração inicial concluída com sucesso!');
         await this.renderApp();
-      } catch (e) {
-        console.error('Erro no onboarding:', e);
+      } catch (err) {
+        console.error('Erro no onboarding:', err);
         await dismissOnboarding();
         await this.renderApp();
       }
