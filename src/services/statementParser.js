@@ -69,7 +69,7 @@ export const StatementParser = {
         return match ? match[1].trim() : '';
       };
 
-      const trnType = getTag('TRNTYPE');
+      const trnType = getTag('TRNTYPE').toUpperCase();
       const rawDate = getTag('DTPOSTED');
       const rawAmount = getTag('TRNAMT');
       const memo = getTag('MEMO') || getTag('NAME') || `Transação #${index + 1}`;
@@ -79,7 +79,20 @@ export const StatementParser = {
 
       const numAmount = parseFloat(rawAmount.replace(',', '.'));
       const absAmount = Math.abs(numAmount);
-      const isIncome = numAmount > 0 || trnType.toUpperCase() === 'CREDIT';
+      
+      // Detecção precisa de Receita vs Despesa em OFX
+      const isExplicitCredit = trnType === 'CREDIT' || trnType === 'DEP' || trnType === 'INT' || trnType === 'DIV';
+      const isExplicitDebit = trnType === 'DEBIT' || trnType === 'PAYMENT' || trnType === 'FEE' || trnType === 'CHECK';
+      
+      let isIncome = false;
+      if (isExplicitCredit) {
+        isIncome = true;
+      } else if (isExplicitDebit) {
+        isIncome = false;
+      } else {
+        isIncome = numAmount > 0 || this._isIncomeDescription(memo);
+      }
+
       const type = isIncome ? 'income' : 'expense';
 
       let date = FORMATTERS.toIsoDate();
@@ -129,7 +142,7 @@ export const StatementParser = {
     const currentYear = new Date().getFullYear();
 
     lines.forEach((line, index) => {
-      if (/saldo anterior|saldo final|extrato de conta|rendimento liquido|periodo:|folha de cheque|total da fatura|limite total/i.test(line)) return;
+      if (/saldo anterior|saldo final|extrato de conta|rendimento liquido|periodo:|folha de cheque|total da fatura|limite total|resumo de operacoes/i.test(line)) return;
 
       // 1. Data
       let date = null;
@@ -150,7 +163,7 @@ export const StatementParser = {
 
       if (!date) return;
 
-      // 2. Valor
+      // 2. Extração de Valor em BRL
       const amountMatches = line.match(/(?:R\$\s*)?(-?\d{1,3}(?:\.\d{3})*,\d{2}|-?\d+[.,]\d{2})\s*(D|C|\+|-)?/gi);
       if (!amountMatches) return;
 
@@ -160,20 +173,30 @@ export const StatementParser = {
       let numAmount = parseFloat(cleanValStr);
       if (isNaN(numAmount) || numAmount === 0) return;
 
-      const isDebitExplicit = /D|-/i.test(lastMatch) || cleanValStr.startsWith('-');
-      const isCreditExplicit = /C|\+/i.test(lastMatch);
+      const absAmount = Math.abs(numAmount);
 
-      let isIncome = isCreditExplicit && !isDebitExplicit;
-      if (!isCreditExplicit && !isDebitExplicit) {
-        if (/recebi|salario|pix recebido|deposito|ted recebida|rendimento|estorno/i.test(line)) {
-          isIncome = true;
-        }
+      // 3. Detecção Avançada de Receita (+) vs Despesa (-)
+      const hasExplicitNegative = cleanValStr.startsWith('-') || /-\s*$/i.test(lastMatch) || /\s+D$/i.test(lastMatch);
+      const hasExplicitPositive = cleanValStr.startsWith('+') || /\+\s*$/i.test(lastMatch) || /\s+C$/i.test(lastMatch);
+      const isIncomeText = this._isIncomeDescription(line);
+      const isExpenseText = this._isExpenseDescription(line);
+
+      let isIncome = false;
+      if (hasExplicitPositive) {
+        isIncome = true;
+      } else if (hasExplicitNegative) {
+        isIncome = false;
+      } else if (isIncomeText) {
+        isIncome = true;
+      } else if (isExpenseText) {
+        isIncome = false;
+      } else {
+        isIncome = numAmount > 0 && !hasExplicitNegative;
       }
 
-      const absAmount = Math.abs(numAmount);
       const type = isIncome ? 'income' : 'expense';
 
-      // 3. Descrição
+      // 4. Descrição Limpa
       let desc = line
         .replace(/\b\d{2}\/\d{2}(?:\/\d{4})?\b/g, '')
         .replace(/\b\d{1,2}\s+(?:JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ)\b/gi, '')
@@ -211,10 +234,40 @@ export const StatementParser = {
     return transactions;
   },
 
+  // Identificação de Palavras-Chave de Receita no Padrão Bancário Brasileiro
+  _isIncomeDescription(text) {
+    const clean = text.toLowerCase();
+    const incomeKeywords = [
+      'pix recebido', 'pix de', 'recebimento pix', 'transf recebida', 'transferência recebida',
+      'transferencia recebida', 'ted recebida', 'ted de', 'doc recebido', 'doc de',
+      'depósito', 'deposito', 'dep em dinheiro', 'dep identificado', 'dep cheque',
+      'salário', 'salario', 'pro labore', 'pro-labore', 'remuneração', 'remuneracao',
+      'folha de pagto', 'folha pagto', 'crédito em conta', 'credito em conta', 'cred conta',
+      'credito pix', 'estorno', 'devolução', 'devolucao', 'rendimento', 'resgate',
+      'aplicação resgate', 'aplicacao resgate', 'resgate aplicacao', 'dividendo', 'provento',
+      'juros s/ capital', 'cashback', 'pagamento recebido', 'transferencia de', 'transf de',
+      'ted remetente', 'pix remetente', 'reembolso', 'credito tef', 'dep tef'
+    ];
+    return incomeKeywords.some(kw => clean.includes(kw));
+  },
+
+  // Identificação de Palavras-Chave de Despesa Explícita
+  _isExpenseDescription(text) {
+    const clean = text.toLowerCase();
+    const expenseKeywords = [
+      'pix enviado', 'pix para', 'transferencia enviada', 'transferência enviada',
+      'compra debito', 'compra débito', 'compra cartao', 'compra crédito', 'compra credito',
+      'pagamento de titulo', 'pagamento de boleto', 'pagamento fatura', 'pagamento efetuado',
+      'ted enviada', 'ted para', 'doc enviado', 'doc para', 'saque terminal', 'saque 24h',
+      'tarifa bancaria', 'anuidade', 'iof', 'juros de cheque'
+    ];
+    return expenseKeywords.some(kw => clean.includes(kw));
+  },
+
   _cleanDescription(raw) {
     let clean = raw
       .replace(/COMPRA\s+(?:A\s+VISTA|DEBITO|CREDITO|PARCELADA)?/gi, '')
-      .replace(/PAGAMENTO\s+(?:DE\s+TITULO|PIX|BOLETO|CONTA)?/gi, '')
+      .replace(/PAGAMENTO\s+(?:DE\s+TITULO|PIX|BOLETO|CONTA|FATURA)?/gi, '')
       .replace(/TRANSFERENCIA\s+(?:ENVIADA|RECEBIDA|PIX)?/gi, '')
       .replace(/PIX\s+(?:ENVIADO|RECEBIDO)?/gi, '')
       .replace(/TED\s+(?:ENVIADA|RECEBIDA|DOC)?/gi, '')
@@ -227,12 +280,10 @@ export const StatementParser = {
     return clean.charAt(0).toUpperCase() + clean.slice(1);
   },
 
-  // Sugestão Inteligente de Categorias com Amplo Dicionário Bancário Brasileiro
   _suggestCategory(text, type, categories = [], existingTransactions = []) {
     const clean = text.toLowerCase();
     const typeCats = categories.filter(c => c.type === type);
 
-    // 1. Verifica se o usuário já categorizou algo parecido no passado (Aprendizado com Histórico)
     if (existingTransactions && existingTransactions.length > 0) {
       const pastMatch = existingTransactions.find(t => 
         t.type === type && 
@@ -246,7 +297,6 @@ export const StatementParser = {
       }
     }
 
-    // 2. Dicionário Brasileiro Completo de Palavras-Chave
     const rules = [
       // Transporte & Combustível
       { regex: /uber|99app|99pop|99 taxi|taxi|cabify|posto|shell|ipiranga|petrobras|br distribuidora|combustivel|gasolina|etanol|estacionamento|estapar|sem parar|veloe|conectcar|pedagio|auto posto|borracharia|oficina/i, match: 'transporte' },
@@ -291,7 +341,6 @@ export const StatementParser = {
       }
     }
 
-    // Se não encontrou regra específica, tenta associar a 'Outros' ou 'Geral' em vez de Alimentação
     const outrosCat = typeCats.find(c => /outr|geral|diverso/i.test(c.name));
     if (outrosCat) return outrosCat;
 

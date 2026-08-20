@@ -815,7 +815,7 @@ class App {
     // ==========================================
     // EDIÇÃO DIRETA E EM LOTE DE CATEGORIAS
     // ==========================================
-    // 1. Alteração Direta no Select da Tabela
+    // 1. Alteração Direta de Categoria no Select da Tabela
     document.querySelectorAll('.change-cat-select').forEach(sel => {
       sel.addEventListener('change', async (e) => {
         const txId = e.target.getAttribute('data-id');
@@ -831,7 +831,25 @@ class App {
       });
     });
 
-    // 2. Seleção em Lote (Checkboxes)
+    // 2. Alternar Tipo Direto (Receita / Despesa) com 1 Clique
+    document.querySelectorAll('.btn-toggle-tx-type').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const tx = await db.getById('transactions', id);
+        if (tx) {
+          tx.type = tx.type === 'income' ? 'expense' : 'income';
+          // Ajusta categoria padrão para o novo tipo
+          const suitableCat = viewData.categories.find(c => c.type === tx.type);
+          if (suitableCat) tx.categoryId = suitableCat.id;
+
+          await db.saveTransaction(tx, userId);
+          this.showToast(`Lançamento alterado para ${tx.type === 'income' ? 'Receita (+)' : 'Despesa (-)'}!`);
+          await this.renderApp();
+        }
+      });
+    });
+
+    // 3. Seleção em Lote (Checkboxes)
     const updateBulkBar = () => {
       const checked = document.querySelectorAll('.tx-row-check:checked');
       const bulkBar = document.getElementById('bulkActionsBar');
@@ -857,7 +875,45 @@ class App {
       chk.addEventListener('change', updateBulkBar);
     });
 
-    // 3. Aplicar Categoria em Lote
+    // 4. Mudar Tipo em Lote para Receita (+)
+    document.getElementById('btnBulkSetIncome')?.addEventListener('click', async () => {
+      const checked = document.querySelectorAll('.tx-row-check:checked');
+      if (checked.length === 0) return;
+
+      const incomeCat = viewData.categories.find(c => c.type === 'income');
+      for (const chk of checked) {
+        const txId = chk.getAttribute('data-id');
+        const tx = await db.getById('transactions', txId);
+        if (tx) {
+          tx.type = 'income';
+          if (incomeCat) tx.categoryId = incomeCat.id;
+          await db.saveTransaction(tx, userId);
+        }
+      }
+      this.showToast(`${checked.length} transações convertidas em Receitas (+)!`);
+      await this.renderApp();
+    });
+
+    // 5. Mudar Tipo em Lote para Despesa (-)
+    document.getElementById('btnBulkSetExpense')?.addEventListener('click', async () => {
+      const checked = document.querySelectorAll('.tx-row-check:checked');
+      if (checked.length === 0) return;
+
+      const expenseCat = viewData.categories.find(c => c.type === 'expense');
+      for (const chk of checked) {
+        const txId = chk.getAttribute('data-id');
+        const tx = await db.getById('transactions', txId);
+        if (tx) {
+          tx.type = 'expense';
+          if (expenseCat) tx.categoryId = expenseCat.id;
+          await db.saveTransaction(tx, userId);
+        }
+      }
+      this.showToast(`${checked.length} transações convertidas em Despesas (-)!`);
+      await this.renderApp();
+    });
+
+    // 6. Aplicar Categoria em Lote
     document.getElementById('btnApplyBulkCategory')?.addEventListener('click', async () => {
       const checked = document.querySelectorAll('.tx-row-check:checked');
       const newCatId = document.getElementById('bulkCategorySelect')?.value;
@@ -876,7 +932,7 @@ class App {
       await this.renderApp();
     });
 
-    // 4. Excluir Selecionadas em Lote
+    // 7. Excluir Selecionadas em Lote
     document.getElementById('btnDeleteBulkSelected')?.addEventListener('click', async () => {
       const checked = document.querySelectorAll('.tx-row-check:checked');
       if (checked.length === 0) return;
@@ -890,7 +946,7 @@ class App {
       }
     });
 
-    // 5. Modal de Edição Detalhada
+    // 8. Modal de Edição Detalhada
     const modalEditTx = document.getElementById('editTransactionModal');
     document.querySelectorAll('.btn-edit-tx').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -898,6 +954,7 @@ class App {
         const tx = await db.getById('transactions', id);
         if (tx) {
           document.getElementById('editTxId').value = tx.id;
+          document.getElementById('editTxType').value = tx.type || 'expense';
           document.getElementById('editTxDescription').value = tx.description;
           document.getElementById('editTxAmount').value = tx.amount;
           document.getElementById('editTxDate').value = tx.date;
@@ -916,6 +973,7 @@ class App {
       const id = document.getElementById('editTxId').value;
       const tx = await db.getById('transactions', id);
       if (tx) {
+        tx.type = document.getElementById('editTxType').value;
         tx.description = document.getElementById('editTxDescription').value;
         tx.amount = parseFloat(document.getElementById('editTxAmount').value);
         tx.date = document.getElementById('editTxDate').value;
@@ -1041,6 +1099,12 @@ class App {
           ${tx.isDuplicate ? '<span class="text-[9px] bg-amber-500/10 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/20 font-semibold">Possível Duplicata</span>' : ''}
         </td>
         <td class="p-2">
+          <select class="input-fintech text-[10px] py-1 px-1.5 stmt-type font-semibold ${tx.type === 'income' ? 'text-emerald-400' : 'text-zinc-300'}" data-index="${idx}">
+            <option value="expense" ${tx.type === 'expense' ? 'selected' : ''}>- Despesa</option>
+            <option value="income" ${tx.type === 'income' ? 'selected' : ''}>+ Receita</option>
+          </select>
+        </td>
+        <td class="p-2">
           <select class="input-fintech text-[11px] py-1 px-1.5 stmt-cat" data-index="${idx}">
             ${categories.filter(c => c.type === tx.type).map(c => `
               <option value="${c.id}" ${c.id === tx.categoryId ? 'selected' : ''}>${c.name}</option>
@@ -1058,6 +1122,17 @@ class App {
         const idx = parseInt(e.target.getAttribute('data-index'), 10);
         this.pendingImportTransactions[idx].selected = e.target.checked;
         this.updateImportSummary();
+      });
+    });
+
+    tbody.querySelectorAll('.stmt-type').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.getAttribute('data-index'), 10);
+        const newType = e.target.value;
+        this.pendingImportTransactions[idx].type = newType;
+        const matchingCat = categories.find(c => c.type === newType);
+        if (matchingCat) this.pendingImportTransactions[idx].categoryId = matchingCat.id;
+        this.renderRecognizedRows(categories);
       });
     });
 

@@ -19,6 +19,16 @@ export function renderEditTransactionModal(categories = [], accounts = []) {
         <form id="editTxForm" class="p-5 space-y-3.5 text-xs">
           <input type="hidden" id="editTxId">
 
+          <!-- Tipo (Receita vs Despesa) -->
+          <div>
+            <label class="block font-medium text-zinc-400 mb-1">Tipo de Lançamento</label>
+            <select id="editTxType" class="input-fintech font-semibold">
+              <option value="expense">Despesa (-)</option>
+              <option value="income">Receita (+)</option>
+              <option value="transfer">Transferência (↔)</option>
+            </select>
+          </div>
+
           <div>
             <label class="block font-medium text-zinc-400 mb-1">Descrição</label>
             <input type="text" id="editTxDescription" required class="input-fintech">

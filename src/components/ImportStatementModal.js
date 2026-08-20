@@ -3,7 +3,7 @@
 export function renderImportStatementModal(accounts = [], categories = []) {
   return `
     <div id="importStatementModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay animate-fade-in">
-      <div class="bg-[#101218] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="bg-[#101218] border border-white/10 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <!-- Header -->
         <div class="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
           <div class="flex items-center gap-2.5">
@@ -78,6 +78,7 @@ export function renderImportStatementModal(accounts = [], categories = []) {
                     <th class="p-2.5 w-8 text-center">✓</th>
                     <th class="p-2.5">Data</th>
                     <th class="p-2.5">Descrição</th>
+                    <th class="p-2.5 w-28">Tipo</th>
                     <th class="p-2.5">Categoria Sugerida</th>
                     <th class="p-2.5 text-right">Valor</th>
                   </tr>
