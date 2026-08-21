@@ -226,6 +226,8 @@ class App {
       recentTransactions: transactions.slice(0, 10),
     };
 
+    const clientName = (this.user?.name || this.user?.displayName || (this.user?.email ? this.user.email.split('@')[0] : '')).trim() || 'Cliente';
+    const windowBrandTitle = `Gastosa de ${clientName}`;
     const currentMenuItem = MENU_ITEMS.find(m => m.id === this.currentRoute) || MENU_ITEMS[0];
     const root = document.getElementById('app');
 
@@ -237,7 +239,7 @@ class App {
           <div class="win-titlebar">
             <div class="flex items-center gap-2">
               <span class="text-xs">🪟</span>
-              <span>Gastosa 98 - [${currentMenuItem.label}]</span>
+              <span>${windowBrandTitle} - [${currentMenuItem.label}]</span>
             </div>
             <div class="flex items-center gap-1">
               <button class="win-btn-control" id="btnWinMinimize" title="Minimizar">_</button>
@@ -261,7 +263,7 @@ class App {
             <button id="btnQuickAddExpense" class="win-btn" title="Registrar Nova Movimentação">
               <span>➕</span> <strong>Novo Gasto</strong>
             </button>
-            <button id="btnOpenImportModal" class="win-btn" title="Importar Extrato Bancário">
+            <button id="btnOpenImportModal" class="win-btn btn-open-import-modal" title="Importar Extrato Bancário">
               <span>📁</span> <strong>Importar Extrato</strong>
             </button>
             <button id="btnTogglePrivacy" class="win-btn" title="Ocultar/Exibir Valores">
@@ -292,14 +294,14 @@ class App {
           <div class="win-addressbar">
             <span class="font-bold text-zinc-700">Endereço:</span>
             <div class="win-inset flex-1 px-2 py-0.5 font-mono text-[11px] bg-white text-black flex items-center gap-1">
-              <span>📂</span> C:\\Meus Documentos\\Gastosa98\\<strong>${this.currentRoute}.exe</strong>
+              <span>📂</span> C:\\Meus Documentos\\Gastosa_${clientName.replace(/\s+/g, '_')}\\<strong>${this.currentRoute}.exe</strong>
             </div>
           </div>
 
           <!-- Corpo Dividido: Árvore Explorer + Área de Conteúdo -->
           <div class="flex-1 flex overflow-hidden min-h-[500px]">
             <!-- Sidebar Explorer -->
-            ${renderSidebar(this.currentRoute)}
+            ${renderSidebar(this.currentRoute, clientName)}
 
             <!-- Área de Conteúdo da Rota -->
             <main class="flex-1 p-3 sm:p-5 overflow-y-auto win-inset bg-white text-black custom-scrollbar">
@@ -312,7 +314,7 @@ class App {
           <!-- Barra de Status do Windows 98 -->
           <div class="win-statusbar">
             <div class="win-status-pane">
-              <span>Pronto. Sistema Gastosa 98 conectado.</span>
+              <span>Pronto. Sistema ${windowBrandTitle} conectado.</span>
             </div>
             <div class="win-status-pane-fixed">
               Saldo: <strong>${FORMATTERS.formatCurrency(metrics.currentBalance)}</strong>
@@ -329,7 +331,7 @@ class App {
         ${renderAiChatFloating()}
 
         <!-- Taskbar Fixa Inferior com Iniciar e Systray -->
-        ${renderWin98Taskbar(this.currentRoute, currentMenuItem.label, notifications.length)}
+        ${renderWin98Taskbar(this.currentRoute, currentMenuItem.label, notifications.length, clientName)}
       </div>
     `;
 

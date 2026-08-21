@@ -21,7 +21,9 @@ export const MENU_ITEMS = [
   { id: 'settings', label: 'Configurações do Sistema', icon: '⚙️' },
 ];
 
-export function renderSidebar(activeRoute = 'dashboard') {
+export function renderSidebar(activeRoute = 'dashboard', userName = '') {
+  const sanitizedName = (userName || 'Cliente').trim().replace(/\s+/g, '_');
+
   const itemsHtml = MENU_ITEMS.map(item => {
     const isActive = item.id === activeRoute;
     const activeClass = isActive
@@ -46,16 +48,16 @@ export function renderSidebar(activeRoute = 'dashboard') {
 
       <!-- Árvore de Diretórios -->
       <div class="flex-1 overflow-y-auto p-1 space-y-0.5 custom-scrollbar win-inset bg-white">
-        <div class="px-2 py-1 text-[10px] text-zinc-700 font-bold uppercase tracking-wider">
-          📂 C:\\Gastosa98\\
+        <div class="px-2 py-1 text-[10px] text-zinc-800 font-bold uppercase tracking-wider truncate" title="C:\\Gastosa_${sanitizedName}\\">
+          📂 C:\\Gastosa_${sanitizedName}\\
         </div>
         ${itemsHtml}
       </div>
 
-      <!-- Status do Sistema -->
-      <div class="p-2 border-t border-[#808080] bg-[#c0c0c0] text-[10px] text-zinc-600 flex items-center justify-between">
-        <span class="flex items-center gap-1">🟢 Sistema OK</span>
-        <span class="font-mono">v4.10.1998</span>
+      <!-- Status do Usuário -->
+      <div class="p-2 border-t border-[#808080] bg-[#c0c0c0] text-[10px] text-zinc-800 font-semibold flex items-center justify-between">
+        <span class="flex items-center gap-1 truncate" title="${userName || 'Cliente'}">👤 ${userName || 'Cliente'}</span>
+        <span class="font-mono text-zinc-600">Win98</span>
       </div>
     </aside>
   `;

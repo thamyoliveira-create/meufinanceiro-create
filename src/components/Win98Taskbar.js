@@ -1,9 +1,8 @@
-// Componente da Taskbar e Menu Iniciar Autênticos do Windows 98 - Meu Financeiro 98
+// Componente da Taskbar e Menu Iniciar Autênticos do Windows 98 - Gastosa 98
 
-import { FORMATTERS } from '../config/constants.js';
-
-export function renderWin98Taskbar(activeRoute = 'dashboard', activeLabel = 'Dashboard', unreadCount = 0) {
+export function renderWin98Taskbar(activeRoute = 'dashboard', activeLabel = 'Dashboard', unreadCount = 0, userName = '') {
   const isPrivacyOn = window.__meuFinanceiroPrivacyMode;
+  const displayName = userName ? `Gastosa de ${userName}` : 'Gastosa 98';
 
   return `
     <!-- Menu Iniciar do Windows 98 (Aberto ao Clicar em Iniciar) -->
@@ -15,8 +14,8 @@ export function renderWin98Taskbar(activeRoute = 'dashboard', activeLabel = 'Das
 
       <!-- Itens do Menu Iniciar -->
       <div class="win-start-items">
-        <div class="px-2 py-1 border-b border-zinc-400 mb-1 text-[10px] text-zinc-800 font-bold">
-          Gastosa 98 SE
+        <div class="px-2 py-1 border-b border-zinc-400 mb-1 text-[10px] text-zinc-800 font-bold truncate">
+          ${displayName}
         </div>
 
         <button data-route="dashboard" class="sidebar-item win-start-item w-full text-left">
@@ -83,9 +82,9 @@ export function renderWin98Taskbar(activeRoute = 'dashboard', activeLabel = 'Das
 
       <!-- Botão da Janela Ativa na Barra -->
       <div class="flex-1 px-2 flex items-center gap-1 overflow-x-auto">
-        <button class="win-btn win-btn-pressed py-1 px-3 text-xs font-bold flex items-center gap-1.5 max-w-[220px] truncate">
+        <button class="win-btn win-btn-pressed py-1 px-3 text-xs font-bold flex items-center gap-1.5 max-w-[260px] truncate" title="${displayName} - ${activeLabel}">
           <span>📁</span>
-          <span class="truncate">Gastosa 98 - ${activeLabel}</span>
+          <span class="truncate">${displayName} - ${activeLabel}</span>
         </button>
       </div>
 
