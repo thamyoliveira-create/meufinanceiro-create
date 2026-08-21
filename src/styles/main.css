@@ -1,293 +1,118 @@
 /* ==========================================================================
-   MEU FINANCEIRO IA - DESIGN SYSTEM: "TITANIUM & OBSIDIAN"
-   Bespoke, High-End Fintech UI (Inspired by Linear, Apple Wallet & Raycast)
+   MEU FINANCEIRO 98 - DESIGN SYSTEM AUTÊNTICO WINDOWS 98
+   Nostalgia Total, 3D Bevels, Teal Desktop (#008080), Taskbar e Menu Iniciar
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('./win98.css');
 
 :root {
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --w98-teal: #008080;
+  --w98-gray: #c0c0c0;
+  --w98-gray-light: #dfdfdf;
+  --w98-gray-dark: #808080;
+  --w98-black: #000000;
+  --w98-white: #ffffff;
+  --w98-navy: #000080;
+  --w98-navy-light: #1084d0;
   
-  /* Paleta de Cores Obsidian / Titanium */
-  --bg-deep: #07080B;
-  --bg-surface: #0D0F15;
-  --bg-card: #12151E;
-  --bg-elevated: #181C27;
-  --bg-hover: #1E2332;
-  
-  /* Bordas de Precisão com Brilho Superior */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-medium: rgba(255, 255, 255, 0.12);
-  --border-glow: rgba(255, 255, 255, 0.22);
-  --card-shine: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 8px 24px -4px rgba(0, 0, 0, 0.6);
-  --card-shine-hover: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 16px 32px -8px rgba(0, 0, 0, 0.8);
-  
-  /* Tipografia */
-  --text-pure: #FFFFFF;
-  --text-primary: #F0F2F6;
-  --text-secondary: #9499A8;
-  --text-muted: #5D6375;
-  
-  /* Cores de Ação Fintech Refinadas */
-  --emerald: #10B981;
-  --emerald-glow: rgba(16, 185, 129, 0.15);
-  --rose: #F43F5E;
-  --rose-glow: rgba(244, 63, 94, 0.15);
-  --indigo: #6366F1;
-  --indigo-glow: rgba(99, 102, 241, 0.15);
-  --amber: #F59E0B;
-  --cyan: #06B6D4;
-}
-
-[data-theme="light"] {
-  --bg-deep: #F5F7FA;
-  --bg-surface: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-elevated: #F0F3F7;
-  --bg-hover: #E4E8EE;
-  
-  --border-subtle: rgba(0, 0, 0, 0.07);
-  --border-medium: rgba(0, 0, 0, 0.14);
-  --border-glow: rgba(0, 0, 0, 0.24);
-  --card-shine: inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 4px 16px -2px rgba(0, 0, 0, 0.05);
-  --card-shine-hover: inset 0 1px 0 0 rgba(255, 255, 255, 1), 0 8px 24px -4px rgba(0, 0, 0, 0.1);
-  
-  --text-pure: #090A0D;
-  --text-primary: #12141A;
-  --text-secondary: #585E70;
-  --text-muted: #8F96A8;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-sans);
-  -webkit-tap-highlight-color: transparent;
-  letter-spacing: -0.015em;
+  --font-sans: 'Segoe UI', Tahoma, 'MS Sans Serif', Geneva, Arial, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
 }
 
 body {
-  background-color: var(--bg-deep);
-  color: var(--text-primary);
-  min-height: 100vh;
-  overflow-x: hidden;
-  background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.07), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(16, 185, 129, 0.04), transparent 60%);
-  background-attachment: fixed;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  background-color: var(--w98-teal) !important;
+  color: #000000 !important;
+  font-family: var(--font-sans) !important;
+  margin: 0;
+  padding: 0;
+  padding-bottom: 34px; /* Espaço para a Taskbar */
+  font-size: 12px;
 }
 
-.font-mono {
-  font-family: var(--font-mono);
-  font-feature-settings: 'tnum' on, 'zero' on;
-}
-
-/* Scrollbars Elegantes */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
-}
-
-/* ==========================================================================
-   CARDS E SUPERFÍCIES TÁTEIS (DESIGN MINIMALISTA INOVADOR)
-   ========================================================================== */
-
-.card-minimal {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--card-shine);
-  border-radius: 1.125rem;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
-              border-color 0.2s ease, 
-              box-shadow 0.2s ease, 
-              background-color 0.2s ease;
-  position: relative;
-}
-
-.card-minimal:hover {
-  border-color: var(--border-medium);
-  box-shadow: var(--card-shine-hover);
-}
-
-.card-interactive {
-  cursor: pointer;
-}
-.card-interactive:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-glow);
-}
-
-.card-elevated {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--card-shine);
-  border-radius: 1.125rem;
-}
-
-/* ==========================================================================
-   BOTÕES DE ALTA PRECISÃO
-   ========================================================================== */
-
-.btn-primary {
-  background: #FFFFFF;
-  color: #07080B;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  border-radius: 0.625rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  box-shadow: 0 2px 8px -1px rgba(255, 255, 255, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 1);
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-[data-theme="light"] .btn-primary {
-  background: #090A0E;
-  color: #FFFFFF;
-  border-color: #090A0E;
-  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.2);
-}
-
-.btn-primary:hover {
-  opacity: 0.95;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px -1px rgba(255, 255, 255, 0.3);
-}
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-secondary {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border-radius: 0.625rem;
-  padding: 0.5rem 0.875rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  box-shadow: var(--card-shine);
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-secondary:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-medium);
-  color: var(--text-pure);
-  transform: translateY(-0.5px);
-}
-
-/* ==========================================================================
-   INPUTS REFINADOS
-   ========================================================================== */
-
-.input-fintech {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  border-radius: 0.625rem;
-  padding: 0.5625rem 0.8125rem;
-  font-size: 0.875rem;
-  width: 100%;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-}
-.input-fintech:focus {
-  background: var(--bg-surface);
-  border-color: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 0 16px -4px rgba(255, 255, 255, 0.1);
-}
-
-/* ==========================================================================
-   PILLS, BADGES E STATUS
-   ========================================================================== */
-
-.badge-minimal {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 0.2rem 0.55rem;
-  border-radius: 0.375rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.pill-income {
-  background: rgba(16, 185, 129, 0.08);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.pill-expense {
-  background: rgba(244, 63, 94, 0.08);
-  color: #FB7185;
-  border: 1px solid rgba(244, 63, 94, 0.2);
-}
-
-.pill-transfer {
-  background: rgba(99, 102, 241, 0.08);
-  color: #818CF8;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-}
-
-/* ==========================================================================
-   ANIMAÇÕES E EFEITOS GLASS
-   ========================================================================== */
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in {
-  animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
+/* Modais como Caixas de Diálogo Windows 98 */
 .modal-overlay {
-  background: rgba(4, 5, 8, 0.78);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.4);
 }
 
-/* Deck de Ações Rápidas */
-.quick-action-pill {
-  padding: 0.5rem 0.85rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
+.modal-overlay > div {
+  background: var(--w98-gray) !important;
+  border-top: 2px solid var(--w98-white) !important;
+  border-left: 2px solid var(--w98-white) !important;
+  border-right: 2px solid var(--w98-black) !important;
+  border-bottom: 2px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark), 4px 4px 10px rgba(0,0,0,0.5) !important;
+  border-radius: 0px !important;
+  color: #000000 !important;
+}
+
+.modal-overlay label {
+  color: #000000 !important;
+  font-weight: bold !important;
+  font-size: 11px !important;
+}
+
+.modal-overlay h3 {
+  color: #ffffff !important;
+}
+
+/* Título de Modais com Barra Azul */
+.modal-overlay > div > div:first-child {
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%) !important;
+  color: #ffffff !important;
+  padding: 4px 6px !important;
+  border-bottom: none !important;
+}
+
+.modal-overlay > div > div:first-child button {
+  background: var(--w98-gray) !important;
+  color: #000000 !important;
+  border-top: 1px solid var(--w98-white) !important;
+  border-left: 1px solid var(--w98-white) !important;
+  border-right: 1px solid var(--w98-black) !important;
+  border-bottom: 1px solid var(--w98-black) !important;
+  width: 16px;
+  height: 14px;
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 9px;
+  border-radius: 0px !important;
+  padding: 0 !important;
 }
-.quick-action-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--border-medium);
-  color: var(--text-pure);
-  transform: translateY(-1px);
+
+/* Gráficos em Fundo Branco 98 */
+canvas {
+  background: #ffffff !important;
+  padding: 6px !important;
+  border-top: 2px solid var(--w98-gray-dark) !important;
+  border-left: 2px solid var(--w98-gray-dark) !important;
+  border-right: 2px solid var(--w98-white) !important;
+  border-bottom: 2px solid var(--w98-white) !important;
+}
+
+/* Ajustes de Cores de Textos */
+h1, h2, h3, h4, h5, h6, p, span {
+  color: inherit;
+}
+
+.text-white {
+  color: #000000 !important;
+}
+
+.text-zinc-200, .text-zinc-300, .text-zinc-400 {
+  color: #333333 !important;
+}
+
+.text-zinc-500 {
+  color: #666666 !important;
+}
+
+.bg-zinc-950, .bg-zinc-900, .bg-\[\#101218\], .bg-\[\#0E1015\], .bg-\[\#08090C\] {
+  background-color: var(--w98-gray) !important;
+}
+
+/* Links e Itens de Navegação */
+a, button {
+  cursor: pointer;
 }

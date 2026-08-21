@@ -1,75 +1,61 @@
-// Componente de Navegação Lateral Desktop Minimalista - Meu Financeiro IA
+// Componente de Navegação Estilo Árvore de Pastas do Windows Explorer 98
 
 export const MENU_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'layout-grid' },
-  { id: 'transactions', label: 'Transações', icon: 'arrow-down-up' },
-  { id: 'accounts', label: 'Contas & Saldos', icon: 'wallet-cards' },
-  { id: 'cards', label: 'Cartões', icon: 'credit-card' },
-  { id: 'bills', label: 'A Pagar / Receber', icon: 'receipt' },
-  { id: 'budget', label: 'Orçamento 50/30/20', icon: 'scale' },
-  { id: 'goals', label: 'Metas & Reserva', icon: 'target' },
-  { id: 'fire', label: 'Independência FIRE', icon: 'flame', badge: 'FIRE' },
-  { id: 'split', label: 'Divisão de Gastos', icon: 'users' },
-  { id: 'debts', label: 'Dívidas', icon: 'percent' },
-  { id: 'investments', label: 'Investimentos', icon: 'trending-up' },
-  { id: 'networth', label: 'Patrimônio', icon: 'landmark' },
-  { id: 'calendar', label: 'Calendário', icon: 'calendar' },
-  { id: 'reports', label: 'Relatórios', icon: 'bar-chart-2' },
-  { id: 'subscriptions', label: 'Assinaturas', icon: 'repeat' },
-  { id: 'canibuy', label: 'Posso Comprar?', icon: 'sparkles', badge: 'IA' },
-  { id: 'ai_assistant', label: 'Assistente IA', icon: 'bot' },
-  { id: 'settings', label: 'Configurações', icon: 'sliders-horizontal' },
+  { id: 'dashboard', label: 'Painel Geral (Dashboard)', icon: '📊' },
+  { id: 'transactions', label: 'Extrato de Transações', icon: '📝' },
+  { id: 'accounts', label: 'Contas Bancárias & Saldos', icon: '🏦' },
+  { id: 'cards', label: 'Cartões de Crédito', icon: '💳' },
+  { id: 'bills', label: 'Contas a Pagar / Receber', icon: '🧾' },
+  { id: 'budget', label: 'Orçamento (Regra 50/30/20)', icon: '⚖️' },
+  { id: 'goals', label: 'Metas & Reserva', icon: '🎯' },
+  { id: 'fire', label: 'Calculadora FIRE', icon: '🔥', badge: 'FIRE' },
+  { id: 'split', label: 'Divisão de Gastos', icon: '👥' },
+  { id: 'debts', label: 'Dívidas & Financiamentos', icon: '📉' },
+  { id: 'investments', label: 'Carteira de Investimentos', icon: '📈' },
+  { id: 'networth', label: 'Balanço Patrimonial', icon: '🏛️' },
+  { id: 'calendar', label: 'Calendário Financeiro', icon: '📅' },
+  { id: 'reports', label: 'Relatórios & Gráficos', icon: '📊' },
+  { id: 'subscriptions', label: 'Assinaturas Recorrentes', icon: '🔁' },
+  { id: 'canibuy', label: 'Posso Comprar? (IA)', icon: '🤖', badge: 'IA' },
+  { id: 'ai_assistant', label: 'Assistente Inteligente', icon: '💬' },
+  { id: 'settings', label: 'Configurações do Sistema', icon: '⚙️' },
 ];
 
 export function renderSidebar(activeRoute = 'dashboard') {
   const itemsHtml = MENU_ITEMS.map(item => {
     const isActive = item.id === activeRoute;
     const activeClass = isActive
-      ? 'bg-white/10 text-white font-semibold'
-      : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.04] font-normal';
-
-    const badgeHtml = item.badge
-      ? `<span class="ml-auto text-[9px] uppercase font-mono font-bold tracking-wider px-1.5 py-0.5 rounded ${
-          item.badge === 'FIRE' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-        }">${item.badge}</span>`
-      : '';
+      ? 'bg-[#000080] text-white font-bold'
+      : 'text-black hover:bg-[#000080] hover:text-white';
 
     return `
-      <button data-route="${item.id}" class="sidebar-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-colors duration-100 ${activeClass}">
-        <i data-lucide="${item.icon}" class="w-4 h-4 flex-shrink-0 opacity-80"></i>
-        <span class="truncate">${item.label}</span>
-        ${badgeHtml}
+      <button data-route="${item.id}" class="sidebar-item w-full flex items-center gap-2 px-2 py-1 text-[11px] text-left rounded-none select-none ${activeClass}">
+        <span class="text-sm">${item.icon}</span>
+        <span class="truncate flex-1">${item.label}</span>
+        ${item.badge ? `<span class="text-[9px] bg-yellow-300 text-black px-1 font-bold">${item.badge}</span>` : ''}
       </button>
     `;
   }).join('');
 
   return `
-    <aside class="hidden lg:flex flex-col w-60 h-screen fixed left-0 top-0 border-r border-white/[0.06] bg-[#090A0D]/90 backdrop-blur-2xl z-30 select-none">
-      <!-- Logo Minimalista -->
-      <div class="h-16 flex items-center px-5 border-b border-white/[0.06] gap-2.5">
-        <div class="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center font-bold text-xs">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5 stroke-[2.5]"></i>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="text-sm font-semibold tracking-tight text-white">Financeiro</span>
-          <span class="text-[10px] font-mono font-bold text-zinc-400 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">IA</span>
-        </div>
+    <aside class="hidden lg:flex flex-col w-56 bg-[#c0c0c0] border-r-2 border-[#808080] select-none text-black">
+      <!-- Cabeçalho Explorer -->
+      <div class="px-3 py-1.5 bg-[#dfdfdf] border-b border-[#808080] font-bold text-[11px] flex items-center gap-1.5">
+        <span>📁</span> <span>Pastas & Módulos</span>
       </div>
 
-      <!-- Links de Navegação -->
-      <div class="flex-1 overflow-y-auto px-2.5 py-4 space-y-0.5 custom-scrollbar">
-        <div class="px-2 pb-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-          Menu
+      <!-- Árvore de Diretórios -->
+      <div class="flex-1 overflow-y-auto p-1 space-y-0.5 custom-scrollbar win-inset bg-white">
+        <div class="px-2 py-1 text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+          📂 C:\\MeuFinanceiro98\\
         </div>
         ${itemsHtml}
       </div>
 
-      <!-- Footer Minimalista -->
-      <div class="p-3 border-t border-white/[0.06]">
-        <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
-          <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
-          <span class="text-[11px] font-medium text-zinc-300">Motor IA Conectado</span>
-        </div>
+      <!-- Status do Sistema -->
+      <div class="p-2 border-t border-[#808080] bg-[#c0c0c0] text-[10px] text-zinc-600 flex items-center justify-between">
+        <span class="flex items-center gap-1">🟢 Sistema OK</span>
+        <span class="font-mono">v4.10.1998</span>
       </div>
     </aside>
   `;

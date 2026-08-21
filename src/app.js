@@ -23,6 +23,7 @@ import { renderAiChatFloating } from './components/AiChatFloating.js';
 import { renderImportStatementModal } from './components/ImportStatementModal.js';
 import { renderEditTransactionModal } from './components/EditTransactionModal.js';
 import { renderEntityModals } from './components/EntityModals.js';
+import { renderWin98Taskbar } from './components/Win98Taskbar.js';
 
 // Visões
 import { renderAuthView } from './components/views/AuthView.js';
@@ -229,33 +230,106 @@ class App {
     const root = document.getElementById('app');
 
     root.innerHTML = `
-      <div class="min-h-screen bg-[#08090C] flex">
-        <!-- Sidebar Desktop -->
-        ${renderSidebar(this.currentRoute)}
-
-        <!-- Área Principal de Conteúdo -->
-        <div class="flex-1 lg:ml-60 flex flex-col min-h-screen">
-          <!-- Navbar com Botão Privacidade -->
-          ${renderNavbar(currentMenuItem.label, this.user, notifications, isDemoActive)}
-
-          <!-- Conteúdo da Rota Ativa -->
-          <main class="flex-1 p-4 lg:p-8 max-w-6xl w-full mx-auto">
-            <div id="mainViewContainer">
-              ${this.getViewHtml(this.currentRoute, viewData)}
+      <div class="min-h-screen bg-[#008080] p-1 sm:p-2.5 flex flex-col justify-between select-none">
+        <!-- Janela Principal Windows 98 -->
+        <div class="win-window flex-1 flex flex-col max-w-7xl w-full mx-auto shadow-2xl mb-8">
+          <!-- Titlebar com Gradiente Azul Clássico e Botões _ □ ✕ -->
+          <div class="win-titlebar">
+            <div class="flex items-center gap-2">
+              <span class="text-xs">🪟</span>
+              <span>Meu Financeiro 98 - [${currentMenuItem.label}]</span>
             </div>
-          </main>
+            <div class="flex items-center gap-1">
+              <button class="win-btn-control" id="btnWinMinimize" title="Minimizar">_</button>
+              <button class="win-btn-control" id="btnWinMaximize" title="Maximizar">□</button>
+              <button class="win-btn-control font-bold" id="btnWinClose" title="Fechar">✕</button>
+            </div>
+          </div>
+
+          <!-- Menubar Estilo Windows 98 -->
+          <div class="win-menubar">
+            <span class="win-menu-item" id="menuItemArquivo">Arquivo</span>
+            <span class="win-menu-item" id="menuItemEditar">Editar</span>
+            <span class="win-menu-item" id="menuItemExibir">Exibir</span>
+            <span class="win-menu-item" id="menuItemLancamento">Novo Lançamento</span>
+            <span class="win-menu-item" id="menuItemImportar">Importar Extrato</span>
+            <span class="win-menu-item" id="menuItemAjuda">Ajuda</span>
+          </div>
+
+          <!-- Barra de Ferramentas com Botões Retro em Relevo 3D -->
+          <div class="win-toolbar">
+            <button id="btnQuickAddExpense" class="win-btn" title="Registrar Nova Movimentação">
+              <span>➕</span> <strong>Novo Gasto</strong>
+            </button>
+            <button id="btnOpenImportModal" class="win-btn" title="Importar Extrato Bancário">
+              <span>📁</span> <strong>Importar Extrato</strong>
+            </button>
+            <button id="btnTogglePrivacy" class="win-btn" title="Ocultar/Exibir Valores">
+              <span>👁️</span> <strong>Modo Privacidade</strong>
+            </button>
+            <button id="btnExportCSV" class="win-btn" title="Exportar dados para Excel/CSV">
+              <span>💾</span> <strong>Salvar CSV</strong>
+            </button>
+            <div class="h-4 w-px bg-zinc-500 mx-1"></div>
+            <button data-route="dashboard" class="sidebar-item win-btn">
+              <span>📊</span> Dashboard
+            </button>
+            <button data-route="transactions" class="sidebar-item win-btn">
+              <span>📝</span> Transações
+            </button>
+            <button data-route="bills" class="sidebar-item win-btn">
+              <span>🧾</span> A Pagar
+            </button>
+            <button data-route="fire" class="sidebar-item win-btn">
+              <span>🔥</span> FIRE
+            </button>
+            <button data-route="split" class="sidebar-item win-btn">
+              <span>👥</span> Dividir
+            </button>
+          </div>
+
+          <!-- Barra de Endereço (Explorer) -->
+          <div class="win-addressbar">
+            <span class="font-bold text-zinc-700">Endereço:</span>
+            <div class="win-inset flex-1 px-2 py-0.5 font-mono text-[11px] bg-white text-black flex items-center gap-1">
+              <span>📂</span> C:\\Meus Documentos\\Financeiro98\\<strong>${this.currentRoute}.exe</strong>
+            </div>
+          </div>
+
+          <!-- Corpo Dividido: Árvore Explorer + Área de Conteúdo -->
+          <div class="flex-1 flex overflow-hidden min-h-[500px]">
+            <!-- Sidebar Explorer -->
+            ${renderSidebar(this.currentRoute)}
+
+            <!-- Área de Conteúdo da Rota -->
+            <main class="flex-1 p-3 sm:p-5 overflow-y-auto win-inset bg-white text-black custom-scrollbar">
+              <div id="mainViewContainer">
+                ${this.getViewHtml(this.currentRoute, viewData)}
+              </div>
+            </main>
+          </div>
+
+          <!-- Barra de Status do Windows 98 -->
+          <div class="win-statusbar">
+            <div class="win-status-pane">
+              <span>Pronto. Sistema Financeiro 98 conectado.</span>
+            </div>
+            <div class="win-status-pane-fixed">
+              Saldo: <strong>${FORMATTERS.formatCurrency(metrics.currentBalance)}</strong>
+            </div>
+          </div>
         </div>
 
-        <!-- Navegação Mobile Inferior -->
-        ${renderMobileNav(this.currentRoute)}
-
-        <!-- Modais -->
+        <!-- Modais 98 -->
         ${renderQuickAddModal(categories, accounts, creditCards)}
         ${renderEditTransactionModal(categories, accounts)}
         ${renderEntityModals(categories, accounts)}
         ${renderImportStatementModal(accounts, categories)}
         ${renderOnboardingModal()}
         ${renderAiChatFloating()}
+
+        <!-- Taskbar Fixa Inferior com Iniciar e Systray -->
+        ${renderWin98Taskbar(this.currentRoute, currentMenuItem.label, notifications.length)}
       </div>
     `;
 
@@ -1343,6 +1417,92 @@ class App {
       el?.addEventListener('click', (e) => {
         if (e.target === el) el.classList.add('hidden');
       });
+    });
+
+    // ==========================================
+    // CONTROLES DO WINDOWS 98 (MENU INICIAR, TASKBAR & SYSTRAY)
+    // ==========================================
+    const startMenu = document.getElementById('win98StartMenu');
+    const startBtn = document.getElementById('btnWinStart');
+
+    // Alternar Menu Iniciar
+    startBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      startMenu?.classList.toggle('hidden');
+      startBtn?.classList.toggle('active');
+    });
+
+    // Fechar Menu Iniciar ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (startMenu && !startMenu.contains(e.target) && e.target !== startBtn) {
+        startMenu.classList.add('hidden');
+        startBtn?.classList.remove('active');
+      }
+    });
+
+    // Ações do Menu Iniciar
+    document.getElementById('btnStartMenuImport')?.addEventListener('click', () => {
+      startMenu?.classList.add('hidden');
+      document.getElementById('importStatementModal')?.classList.remove('hidden');
+    });
+
+    document.getElementById('btnStartMenuPrivacy')?.addEventListener('click', () => {
+      startMenu?.classList.add('hidden');
+      window.__meuFinanceiroPrivacyMode = !window.__meuFinanceiroPrivacyMode;
+      this.showToast(`Modo Privacidade ${window.__meuFinanceiroPrivacyMode ? 'Ativado' : 'Desativado'}!`);
+      this.renderApp();
+    });
+
+    document.getElementById('btnTrayPrivacy')?.addEventListener('click', () => {
+      window.__meuFinanceiroPrivacyMode = !window.__meuFinanceiroPrivacyMode;
+      this.showToast(`Modo Privacidade ${window.__meuFinanceiroPrivacyMode ? 'Ativado' : 'Desativado'}!`);
+      this.renderApp();
+    });
+
+    document.getElementById('btnStartMenuShutdown')?.addEventListener('click', () => {
+      startMenu?.classList.add('hidden');
+      if (confirm('Deseja realmente encerrar a sessão do Windows 98?')) {
+        auth.logout();
+        this.user = null;
+        this.renderApp();
+      }
+    });
+
+    // Botões de Janela _ □ ✕
+    document.getElementById('btnWinMinimize')?.addEventListener('click', () => {
+      this.showToast('Janela minimizada para a barra de tarefas.');
+    });
+    document.getElementById('btnWinMaximize')?.addEventListener('click', () => {
+      this.showToast('Modo tela cheia ativado.');
+    });
+    document.getElementById('btnWinClose')?.addEventListener('click', () => {
+      this.showToast('Para fechar, use o Menu Iniciar > Desligar.');
+    });
+
+    // Relógio Digital do Systray (Atualiza em tempo real)
+    const updateWinClock = () => {
+      const clockEl = document.getElementById('winClock');
+      if (clockEl) {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        clockEl.textContent = `${h}:${m}`;
+      }
+    };
+    updateWinClock();
+    if (!window.__winClockInterval) {
+      window.__winClockInterval = setInterval(updateWinClock, 1000);
+    }
+
+    // Menubar do Topo
+    document.getElementById('menuItemLancamento')?.addEventListener('click', () => {
+      document.getElementById('quickAddModal')?.classList.remove('hidden');
+    });
+    document.getElementById('menuItemImportar')?.addEventListener('click', () => {
+      document.getElementById('importStatementModal')?.classList.remove('hidden');
+    });
+    document.getElementById('menuItemAjuda')?.addEventListener('click', () => {
+      alert('Meu Financeiro 98 SE\nVersão 4.10.1998\nSistema Pessoal de Finanças com IA e Nostalgia');
     });
 
     // Outros listeners gerais

@@ -1,0 +1,450 @@
+/* ==========================================================================
+   MEU FINANCEIRO 98 - TEMA AUTÊNTICO WINDOWS 98
+   Nostalgia pura, pixel-perfect 3D Bevels, Teal Desktop, Taskbar e Menu Iniciar
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Silkscreen&display=swap');
+
+:root {
+  --w98-teal: #008080;
+  --w98-gray: #c0c0c0;
+  --w98-gray-light: #dfdfdf;
+  --w98-gray-dark: #808080;
+  --w98-black: #000000;
+  --w98-white: #ffffff;
+  --w98-navy: #000080;
+  --w98-navy-light: #1084d0;
+  --w98-blue-active: #000080;
+  --w98-yellow: #ffff00;
+  --w98-red: #ff0000;
+  --w98-green: #008000;
+  
+  --font-win98: 'Segoe UI', Tahoma, 'MS Sans Serif', Geneva, Arial, sans-serif;
+  --font-win98-title: Tahoma, 'MS Sans Serif', Arial, sans-serif;
+  --font-mono-retro: 'Courier New', Courier, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: var(--font-win98);
+}
+
+body {
+  background-color: var(--w98-teal);
+  color: var(--w98-black);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  padding-bottom: 34px; /* Espaço para a Taskbar */
+  background-image: none;
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   3D BEVEL BORDERS (A ALMA DO WINDOWS 98)
+   ========================================================================== */
+
+/* Caixa em Alto Relevo (Raised Window / Button / Panel) */
+.win-outset {
+  background: var(--w98-gray);
+  border-top: 2px solid var(--w98-white);
+  border-left: 2px solid var(--w98-white);
+  border-right: 2px solid var(--w98-black);
+  border-bottom: 2px solid var(--w98-black);
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark);
+}
+
+/* Caixa em Baixo Relevo (Sunken Input / Well / Status / Table Cell) */
+.win-inset {
+  background: var(--w98-white);
+  border-top: 2px solid var(--w98-gray-dark);
+  border-left: 2px solid var(--w98-gray-dark);
+  border-right: 2px solid var(--w98-white);
+  border-bottom: 2px solid var(--w98-white);
+  box-shadow: inset 1px 1px 0px var(--w98-black), inset -1px -1px 0px var(--w98-gray-light);
+}
+
+/* Campo rebaixado escuro ou de texto */
+.win-inset-gray {
+  background: var(--w98-gray);
+  border-top: 2px solid var(--w98-gray-dark);
+  border-left: 2px solid var(--w98-gray-dark);
+  border-right: 2px solid var(--w98-white);
+  border-bottom: 2px solid var(--w98-white);
+}
+
+/* ==========================================================================
+   JANELA WINDOWS 98 (TITLEBAR & CONTROLS)
+   ========================================================================== */
+
+.win-window {
+  background: var(--w98-gray);
+  border-top: 2px solid var(--w98-white);
+  border-left: 2px solid var(--w98-white);
+  border-right: 2px solid var(--w98-black);
+  border-bottom: 2px solid var(--w98-black);
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark), 2px 2px 0px rgba(0,0,0,0.4);
+}
+
+.win-titlebar {
+  background: linear-gradient(90deg, var(--w98-navy) 0%, var(--w98-navy-light) 100%);
+  color: var(--w98-white);
+  padding: 3px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+.win-titlebar.inactive {
+  background: linear-gradient(90deg, #808080 0%, #b5b5b5 100%);
+}
+
+.win-btn-control {
+  background: var(--w98-gray);
+  border-top: 1px solid var(--w98-white);
+  border-left: 1px solid var(--w98-white);
+  border-right: 1px solid var(--w98-black);
+  border-bottom: 1px solid var(--w98-black);
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark);
+  width: 16px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-win98);
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--w98-black);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.win-btn-control:active {
+  border-top: 1px solid var(--w98-black);
+  border-left: 1px solid var(--w98-black);
+  border-right: 1px solid var(--w98-white);
+  border-bottom: 1px solid var(--w98-white);
+  box-shadow: none;
+  padding-top: 1px;
+  padding-left: 1px;
+}
+
+/* ==========================================================================
+   MENUBAR E TOOLBAR EXPLORER
+   ========================================================================== */
+
+.win-menubar {
+  background: var(--w98-gray);
+  border-bottom: 1px solid var(--w98-gray-dark);
+  padding: 2px 6px;
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.win-menu-item {
+  color: var(--w98-black);
+  cursor: pointer;
+  padding: 1px 4px;
+  user-select: none;
+}
+
+.win-menu-item:hover {
+  background: var(--w98-navy);
+  color: var(--w98-white);
+}
+
+.win-toolbar {
+  background: var(--w98-gray);
+  border-bottom: 2px solid var(--w98-gray-dark);
+  padding: 4px 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.win-addressbar {
+  background: var(--w98-gray);
+  border-bottom: 1px solid var(--w98-gray-dark);
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+/* ==========================================================================
+   BOTÕES WINDOWS 98
+   ========================================================================== */
+
+.win-btn, .btn-primary, .btn-secondary {
+  background: var(--w98-gray) !important;
+  color: var(--w98-black) !important;
+  border-top: 2px solid var(--w98-white) !important;
+  border-left: 2px solid var(--w98-white) !important;
+  border-right: 2px solid var(--w98-black) !important;
+  border-bottom: 2px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
+  padding: 3px 10px !important;
+  font-size: 11px !important;
+  font-weight: normal !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  border-radius: 0px !important;
+  user-select: none !important;
+  transform: none !important;
+  text-decoration: none !important;
+}
+
+.win-btn:active, .btn-primary:active, .btn-secondary:active, .win-btn-pressed {
+  border-top: 2px solid var(--w98-black) !important;
+  border-left: 2px solid var(--w98-black) !important;
+  border-right: 2px solid var(--w98-white) !important;
+  border-bottom: 2px solid var(--w98-white) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-dark) !important;
+  padding-top: 4px !important;
+  padding-left: 11px !important;
+  padding-bottom: 2px !important;
+  padding-right: 9px !important;
+}
+
+.win-btn-default {
+  border-top: 2px solid var(--w98-black) !important;
+  border-left: 2px solid var(--w98-black) !important;
+  border-right: 2px solid var(--w98-black) !important;
+  border-bottom: 2px solid var(--w98-black) !important;
+  outline: 1px dotted var(--w98-black);
+  outline-offset: -4px;
+}
+
+/* ==========================================================================
+   INPUTS E SELECTS WINDOWS 98
+   ========================================================================== */
+
+.input-fintech, input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select, textarea {
+  background: var(--w98-white) !important;
+  color: var(--w98-black) !important;
+  border-top: 2px solid var(--w98-gray-dark) !important;
+  border-left: 2px solid var(--w98-gray-dark) !important;
+  border-right: 2px solid var(--w98-white) !important;
+  border-bottom: 2px solid var(--w98-white) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-black), inset -1px -1px 0px var(--w98-gray-light) !important;
+  border-radius: 0px !important;
+  padding: 3px 5px !important;
+  font-size: 11px !important;
+  outline: none !important;
+}
+
+/* ==========================================================================
+   TABELAS WINDOWS 98 (DATAGRID COM CABEÇALHO EM RELEVO)
+   ========================================================================== */
+
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: var(--w98-white);
+}
+
+thead th {
+  background: var(--w98-gray) !important;
+  color: var(--w98-black) !important;
+  border-top: 1px solid var(--w98-white) !important;
+  border-left: 1px solid var(--w98-white) !important;
+  border-right: 1px solid var(--w98-black) !important;
+  border-bottom: 1px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
+  padding: 3px 6px !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  text-align: left !important;
+  user-select: none !important;
+}
+
+tbody td {
+  border-bottom: 1px solid var(--w98-gray-light) !important;
+  border-right: 1px solid var(--w98-gray-light) !important;
+  padding: 3px 6px !important;
+  font-size: 11px !important;
+  color: var(--w98-black) !important;
+}
+
+tbody tr:hover {
+  background: #000080 !important;
+}
+tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   CARDS COMO GROUPBOXES / JANELAS
+   ========================================================================== */
+
+.card-minimal, .card-fintech, .card-elevated {
+  background: var(--w98-gray) !important;
+  border-top: 2px solid var(--w98-white) !important;
+  border-left: 2px solid var(--w98-white) !important;
+  border-right: 2px solid var(--w98-black) !important;
+  border-bottom: 2px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
+  border-radius: 0px !important;
+  color: var(--w98-black) !important;
+}
+
+/* ==========================================================================
+   TASKBAR INFERIOR DO WINDOWS 98 (COM INICIAR E SYSTRAY)
+   ========================================================================== */
+
+.win-taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: var(--w98-gray);
+  border-top: 2px solid var(--w98-white);
+  box-shadow: inset 0 1px 0 var(--w98-gray-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 3px;
+  z-index: 9999;
+  user-select: none;
+}
+
+.win-start-btn {
+  background: var(--w98-gray);
+  border-top: 2px solid var(--w98-white);
+  border-left: 2px solid var(--w98-white);
+  border-right: 2px solid var(--w98-black);
+  border-bottom: 2px solid var(--w98-black);
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark);
+  font-weight: bold;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.win-start-btn:active, .win-start-btn.active {
+  border-top: 2px solid var(--w98-black);
+  border-left: 2px solid var(--w98-black);
+  border-right: 2px solid var(--w98-white);
+  border-bottom: 2px solid var(--w98-white);
+  box-shadow: inset 1px 1px 0px var(--w98-gray-dark);
+  padding-top: 3px;
+  padding-left: 7px;
+}
+
+.win-systray {
+  border-top: 2px solid var(--w98-gray-dark);
+  border-left: 2px solid var(--w98-gray-dark);
+  border-right: 2px solid var(--w98-white);
+  border-bottom: 2px solid var(--w98-white);
+  background: var(--w98-gray);
+  height: 22px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-family: var(--font-mono-retro);
+}
+
+/* Menu Iniciar */
+.win-start-menu {
+  position: fixed;
+  bottom: 30px;
+  left: 2px;
+  width: 220px;
+  background: var(--w98-gray);
+  border-top: 2px solid var(--w98-white);
+  border-left: 2px solid var(--w98-white);
+  border-right: 2px solid var(--w98-black);
+  border-bottom: 2px solid var(--w98-black);
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark), 4px 4px 10px rgba(0,0,0,0.5);
+  display: flex;
+  z-index: 10000;
+}
+
+.win-start-banner {
+  background: linear-gradient(180deg, #000080 0%, #1084d0 100%);
+  color: var(--w98-white);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding: 10px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.win-start-items {
+  flex: 1;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.win-start-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  font-size: 11px;
+  color: var(--w98-black);
+  cursor: pointer;
+  text-decoration: none;
+  user-select: none;
+}
+
+.win-start-item:hover {
+  background: var(--w98-navy);
+  color: var(--w98-white);
+}
+
+/* ==========================================================================
+   STATUSBAR
+   ========================================================================== */
+
+.win-statusbar {
+  border-top: 1px solid var(--w98-gray-dark);
+  background: var(--w98-gray);
+  padding: 2px 4px;
+  display: flex;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.win-status-pane {
+  border-top: 1px solid var(--w98-gray-dark);
+  border-left: 1px solid var(--w98-gray-dark);
+  border-right: 1px solid var(--w98-white);
+  border-bottom: 1px solid var(--w98-white);
+  padding: 1px 6px;
+  flex: 1;
+}
+
+.win-status-pane-fixed {
+  border-top: 1px solid var(--w98-gray-dark);
+  border-left: 1px solid var(--w98-gray-dark);
+  border-right: 1px solid var(--w98-white);
+  border-bottom: 1px solid var(--w98-white);
+  padding: 1px 6px;
+  width: 140px;
+  text-align: right;
+  font-family: var(--font-mono-retro);
+}
