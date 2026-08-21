@@ -1,4 +1,4 @@
-// Visão do Dashboard Inovador Titanium & Obsidian - Meu Financeiro IA
+// Visão do Dashboard Windows 98 com Alto Contraste e Legibilidade - Meu Financeiro 98
 
 import { FORMATTERS } from '../../config/constants.js';
 
@@ -9,163 +9,151 @@ export function renderDashboardView(data) {
 
   const expenseDiffText = metrics.prevExpense > 0
     ? (metrics.expenseVarPercent <= 0
-        ? `<span class="text-emerald-400 font-mono text-[11px]">↓ ${Math.abs(metrics.expenseVarPercent).toFixed(1)}% vs anterior</span>`
-        : `<span class="text-rose-400 font-mono text-[11px]">↑ +${metrics.expenseVarPercent.toFixed(1)}% vs anterior</span>`)
+        ? `<span class="text-[#006600] font-bold">↓ ${Math.abs(metrics.expenseVarPercent).toFixed(1)}% vs anterior</span>`
+        : `<span class="text-[#aa0000] font-bold">↑ +${metrics.expenseVarPercent.toFixed(1)}% vs anterior</span>`)
     : '';
 
   return `
-    <div class="space-y-7 animate-fade-in pb-12">
-      <!-- Deck de Ações Rápidas Inovador (Command Strip) -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
-        <button id="btnQuickAddHero" class="quick-action-pill bg-white text-zinc-950 font-semibold border-white hover:bg-zinc-200">
-          <i data-lucide="plus" class="w-3.5 h-3.5 text-zinc-950"></i> Lançar Movimentação
+    <div class="space-y-4 animate-fade-in text-black">
+      <!-- Deck de Ferramentas e Ações Rápidas -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+        <button id="btnQuickAddHero" class="win-btn font-bold">
+          <span>➕</span> <span>Lançar Movimentação</span>
         </button>
-        <button id="btnOpenImportModal" class="quick-action-pill">
-          <i data-lucide="file-up" class="w-3.5 h-3.5 text-zinc-300"></i> Importar Extrato (PDF/OFX)
+        <button id="btnOpenImportModal" class="win-btn">
+          <span>📁</span> <span>Importar Extrato (PDF/OFX)</span>
         </button>
-        <button data-route="canibuy" class="sidebar-item quick-action-pill">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i> Posso Comprar?
+        <button data-route="canibuy" class="sidebar-item win-btn">
+          <span>🤖</span> <span>Posso Comprar?</span>
         </button>
-        <button data-route="fire" class="sidebar-item quick-action-pill">
-          <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-400"></i> Simulador FIRE
+        <button data-route="fire" class="sidebar-item win-btn">
+          <span>🔥</span> <span>Calculadora FIRE</span>
         </button>
-        <button data-route="split" class="sidebar-item quick-action-pill">
-          <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-400"></i> Dividir Gastos
+        <button data-route="split" class="sidebar-item win-btn">
+          <span>👥</span> <span>Dividir Gastos</span>
         </button>
-        <button data-route="bills" class="sidebar-item quick-action-pill">
-          <i data-lucide="receipt" class="w-3.5 h-3.5 text-rose-400"></i> Contas a Pagar
+        <button data-route="bills" class="sidebar-item win-btn">
+          <span>🧾</span> <span>Contas a Pagar</span>
         </button>
       </div>
 
-      <!-- Banner de Anomalia ou Destaque Financeiro -->
+      <!-- Banner de Alerta / Anomalia se houver -->
       ${anomalies.length > 0 ? `
-        <div class="p-4 rounded-xl bg-zinc-950 border border-amber-500/30 flex items-center justify-between text-xs">
-          <div class="flex items-center gap-3">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-            <span class="text-zinc-200 font-medium">${anomalies[0].message}</span>
+        <div class="p-3 bg-[#ffffcc] border-2 border-[#808080] flex items-center justify-between text-xs text-black">
+          <div class="flex items-center gap-2">
+            <span class="text-base font-bold text-amber-700">⚠️</span>
+            <span class="font-bold">${anomalies[0].message}</span>
           </div>
-          <button data-route="ai_assistant" class="sidebar-item text-amber-400 hover:text-amber-300 font-semibold text-xs flex items-center gap-1">
-            Analisar com IA &rarr;
+          <button data-route="ai_assistant" class="sidebar-item win-btn py-0.5 px-2 text-[11px]">
+            Ver com Assistente &rarr;
           </button>
         </div>
       ` : ''}
 
-      <!-- Hero Cockpit: Saldo Principal com Projeção e Taxa de Poupança -->
-      <div class="card-minimal p-7 sm:p-8 flex flex-col lg:flex-row lg:items-end justify-between gap-6 relative overflow-hidden">
-        <div class="space-y-2 z-10">
+      <!-- Painel Principal de Saldo (Hero Box 98) -->
+      <div class="win-outset p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="space-y-1">
           <div class="flex items-center gap-2">
-            <span class="text-[11px] uppercase tracking-wider text-zinc-400 font-bold">Patrimônio Líquido Disponível</span>
-            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono">Em Tempo Real</span>
+            <span class="text-xs uppercase font-bold text-zinc-700 tracking-wider">Patrimônio Líquido Disponível:</span>
+            <span class="text-[10px] bg-green-100 text-[#006600] border border-[#006600] px-1.5 py-0.2 font-bold font-mono">Tempo Real</span>
           </div>
-          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white font-mono tracking-tight">
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-black font-mono tracking-tight">
             ${FORMATTERS.formatCurrency(metrics.currentBalance)}
           </h1>
-          <div class="flex flex-wrap items-center gap-4 text-xs text-zinc-400 pt-1">
-            <span class="flex items-center gap-1.5">
-              <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
-              Previsão Fim do Mês: <strong class="text-zinc-200 font-mono">${FORMATTERS.formatCurrency(metrics.projectedEndBalance)}</strong>
-            </span>
-            <span class="text-zinc-600">•</span>
-            <span>Renda Comprometida: <strong class="text-zinc-200 font-mono">${metrics.committedIncomePercent.toFixed(1)}%</strong></span>
+          <div class="flex flex-wrap items-center gap-3 text-xs text-zinc-800 font-medium pt-1">
+            <span>Previsão Fim do Mês: <strong class="font-mono text-black">${FORMATTERS.formatCurrency(metrics.projectedEndBalance)}</strong></span>
+            <span>•</span>
+            <span>Renda Comprometida: <strong class="font-mono text-black">${metrics.committedIncomePercent.toFixed(1)}%</strong></span>
           </div>
         </div>
 
-        <div class="flex items-center gap-3 z-10">
-          <button data-route="budget" class="sidebar-item btn-secondary text-xs">
-            <i data-lucide="pie-chart" class="w-3.5 h-3.5 text-indigo-400"></i> Orçamento 50/30/20
+        <div class="flex items-center gap-2">
+          <button data-route="budget" class="sidebar-item win-btn font-bold">
+            <span>⚖️</span> <span>Orçamento 50/30/20</span>
           </button>
-          <button data-route="transactions" class="sidebar-item btn-primary text-xs">
-            <i data-lucide="list" class="w-3.5 h-3.5"></i> Ver Lançamentos
+          <button data-route="transactions" class="sidebar-item win-btn font-bold">
+            <span>📝</span> <span>Ver Extrato Completo</span>
           </button>
         </div>
       </div>
 
-      <!-- Grid de Indicadores de Fluxo (Receitas, Despesas, Poupança Líquida) -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <!-- Grid de Indicadores (Receitas, Despesas, Poupança Líquida) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <!-- Receitas -->
-        <div class="card-minimal p-5 space-y-3">
-          <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold">
-            <span>Receitas do Mês</span>
-            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
-            </div>
+        <div class="win-outset p-3.5 space-y-2">
+          <div class="flex items-center justify-between font-bold text-xs">
+            <span class="text-[#006600]">Entradas / Receitas</span>
+            <span>📥</span>
           </div>
-          <h3 class="text-2xl sm:text-3xl font-extrabold text-white font-mono">${FORMATTERS.formatCurrency(metrics.currentIncome)}</h3>
-          <p class="text-[11px] text-zinc-400 flex items-center gap-1.5 font-medium">
-            <span class="text-emerald-400 font-mono">${metrics.prevIncome > 0 ? `+${metrics.incomeVarPercent.toFixed(1)}%` : 'Entradas'}</span> vs mês anterior
+          <h3 class="text-2xl font-extrabold text-[#006600] font-mono">${FORMATTERS.formatCurrency(metrics.currentIncome)}</h3>
+          <p class="text-[11px] text-zinc-700 font-medium">
+            <strong class="text-[#006600]">${metrics.prevIncome > 0 ? `+${metrics.incomeVarPercent.toFixed(1)}%` : 'Total'}</strong> vs mês anterior
           </p>
         </div>
 
         <!-- Despesas -->
-        <div class="card-minimal p-5 space-y-3">
-          <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold">
-            <span>Despesas Totais</span>
-            <div class="w-7 h-7 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
-              <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
-            </div>
+        <div class="win-outset p-3.5 space-y-2">
+          <div class="flex items-center justify-between font-bold text-xs">
+            <span class="text-[#aa0000]">Saídas / Despesas</span>
+            <span>📤</span>
           </div>
-          <h3 class="text-2xl sm:text-3xl font-extrabold text-white font-mono">${FORMATTERS.formatCurrency(metrics.currentExpense)}</h3>
-          <p class="text-[11px] text-zinc-400 flex items-center gap-1.5 font-medium">
-            ${expenseDiffText || '<span class="text-zinc-500 font-mono">Saídas do mês</span>'}
+          <h3 class="text-2xl font-extrabold text-[#aa0000] font-mono">${FORMATTERS.formatCurrency(metrics.currentExpense)}</h3>
+          <p class="text-[11px] text-zinc-700 font-medium">
+            ${expenseDiffText || '<span>Total gasto no mês</span>'}
           </p>
         </div>
 
         <!-- Economia Líquida -->
-        <div class="card-minimal p-5 space-y-3">
-          <div class="flex items-center justify-between text-zinc-400 text-xs font-semibold">
-            <span>Economia Líquida</span>
-            <div class="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <i data-lucide="wallet" class="w-4 h-4"></i>
-            </div>
+        <div class="win-outset p-3.5 space-y-2">
+          <div class="flex items-center justify-between font-bold text-xs">
+            <span class="text-[#000080]">Economia do Mês</span>
+            <span>💰</span>
           </div>
-          <h3 class="text-2xl sm:text-3xl font-extrabold text-white font-mono ${metrics.currentSavings >= 0 ? 'text-white' : 'text-rose-400'}">
+          <h3 class="text-2xl font-extrabold text-[#000080] font-mono">
             ${FORMATTERS.formatCurrency(metrics.currentSavings)}
           </h3>
-          <p class="text-[11px] text-zinc-400 flex items-center gap-1.5 font-medium">
-            <span class="font-mono ${metrics.savingsRate >= 20 ? 'text-emerald-400' : 'text-amber-400'}">${metrics.savingsRate.toFixed(1)}% de poupança</span>
+          <p class="text-[11px] text-zinc-700 font-medium">
+            <strong class="font-mono text-black">${metrics.savingsRate.toFixed(1)}%</strong> da renda guardada
           </p>
         </div>
       </div>
 
-      <!-- Seção Central de Gráficos e Distribuição -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Gráfico de Fluxo Financeiro -->
-        <div class="card-minimal p-6 lg:col-span-8 flex flex-col justify-between space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                <i data-lucide="activity" class="w-4 h-4 text-zinc-400"></i> Histórico de Fluxo de Caixa
-              </h3>
-              <p class="text-[11px] text-zinc-500">Comparativo mês a mês dos últimos 6 meses</p>
-            </div>
-            <span class="text-[10px] font-mono text-zinc-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded">Mensal</span>
+      <!-- Seção de Gráficos e Distribuição -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <!-- Gráfico de Fluxo de Caixa -->
+        <div class="win-outset p-4 lg:col-span-8 flex flex-col justify-between space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-400 pb-1">
+            <h3 class="text-xs font-bold text-black flex items-center gap-1.5">
+              <span>📈</span> <span>Histórico de Fluxo Financeiro (Últimos 6 Meses)</span>
+            </h3>
+            <span class="text-[10px] font-mono font-bold">Mensal</span>
           </div>
-          <div class="relative h-64 w-full">
+          <div class="relative h-60 w-full win-inset p-1 bg-white">
             <canvas id="chartCashflowHistory"></canvas>
           </div>
         </div>
 
-        <!-- Gastos por Categoria com Donut & Legenda -->
-        <div class="card-minimal p-6 lg:col-span-4 flex flex-col justify-between space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-              <i data-lucide="pie-chart" class="w-4 h-4 text-zinc-400"></i> Distribuição
+        <!-- Distribuição por Categoria -->
+        <div class="win-outset p-4 lg:col-span-4 flex flex-col justify-between space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-400 pb-1">
+            <h3 class="text-xs font-bold text-black flex items-center gap-1.5">
+              <span>🥧</span> <span>Categorias</span>
             </h3>
-            <span class="text-[11px] font-mono text-zinc-400">Mês Atual</span>
+            <span class="text-[10px] font-mono font-bold">Mês Atual</span>
           </div>
 
-          <div class="relative h-44 flex items-center justify-center">
+          <div class="relative h-40 flex items-center justify-center win-inset p-1 bg-white">
             <canvas id="chartCategoryDoughnut"></canvas>
           </div>
 
-          <div class="space-y-2 max-h-36 overflow-y-auto custom-scrollbar">
+          <div class="space-y-1.5 max-h-32 overflow-y-auto win-inset p-2 bg-white text-xs">
             ${categoryBreakdown.list.slice(0, 4).map(item => `
-              <div class="flex items-center justify-between text-xs py-0.5">
-                <span class="flex items-center gap-2 text-zinc-400">
-                  <span class="w-2 h-2 rounded-full" style="background-color: ${item.color || '#A1A1AA'}"></span>
+              <div class="flex items-center justify-between py-0.5">
+                <span class="flex items-center gap-1.5 font-medium text-black">
+                  <span class="w-2.5 h-2.5 inline-block border border-black" style="background-color: ${item.color || '#808080'}"></span>
                   ${item.name}
                 </span>
-                <span class="font-mono text-zinc-200 font-medium">${FORMATTERS.formatCurrency(item.amount)}</span>
+                <span class="font-mono text-black font-bold">${FORMATTERS.formatCurrency(item.amount)}</span>
               </div>
             `).join('')}
           </div>
@@ -173,38 +161,36 @@ export function renderDashboardView(data) {
       </div>
 
       <!-- Próximos Vencimentos e Transações Recentes -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
         <!-- Movimentações Recentes -->
-        <div class="card-minimal p-6 lg:col-span-7 space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-              <i data-lucide="clock" class="w-4 h-4 text-zinc-400"></i> Movimentações Recentes
+        <div class="win-outset p-4 lg:col-span-7 space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-400 pb-1">
+            <h3 class="text-xs font-bold text-black flex items-center gap-1.5">
+              <span>⏱️</span> <span>Últimos Lançamentos</span>
             </h3>
-            <button data-route="transactions" class="sidebar-item text-xs text-zinc-400 hover:text-white flex items-center gap-1">
-              Ver todas &rarr;
+            <button data-route="transactions" class="sidebar-item win-btn text-[10px] py-0.5 px-1.5">
+              Ver Todos &rarr;
             </button>
           </div>
 
           ${recentTransactions.length === 0 ? `
-            <p class="text-xs text-zinc-500 py-8 text-center">Nenhuma movimentação registrada.</p>
+            <p class="text-xs text-zinc-600 py-6 text-center">Nenhuma movimentação registrada.</p>
           ` : `
-            <div class="divide-y divide-white/[0.04] text-xs">
+            <div class="win-inset bg-white divide-y divide-zinc-300 text-xs">
               ${recentTransactions.slice(0, 5).map(tx => `
-                <div class="py-3 flex items-center justify-between group">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-400">
-                      <i data-lucide="${tx.type === 'income' ? 'arrow-down-left' : 'arrow-up-right'}" class="w-4 h-4 ${tx.type === 'income' ? 'text-emerald-400' : 'text-zinc-400'}"></i>
-                    </div>
+                <div class="p-2 flex items-center justify-between hover:bg-[#000080] hover:text-white group">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm">${tx.type === 'income' ? '📥' : '📤'}</span>
                     <div>
-                      <p class="font-medium text-zinc-200">${tx.description}</p>
-                      <p class="text-[11px] text-zinc-500">${FORMATTERS.formatDate(tx.date)} ${tx.establishment ? `• ${tx.establishment}` : ''}</p>
+                      <p class="font-bold text-black group-hover:text-white">${tx.description}</p>
+                      <p class="text-[10px] text-zinc-600 group-hover:text-zinc-200">${FORMATTERS.formatDate(tx.date)} ${tx.establishment ? `• ${tx.establishment}` : ''}</p>
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="font-mono font-semibold ${tx.type === 'income' ? 'text-emerald-400' : 'text-zinc-200'}">
+                    <p class="font-mono font-bold ${tx.type === 'income' ? 'text-[#006600] group-hover:text-green-300' : 'text-[#aa0000] group-hover:text-red-200'}">
                       ${tx.type === 'income' ? '+' : '-'} ${FORMATTERS.formatCurrency(tx.amount)}
                     </p>
-                    <p class="text-[10px] text-zinc-500 uppercase">${tx.paymentMethod || 'Pix'}</p>
+                    <p class="text-[9px] uppercase font-mono text-zinc-500 group-hover:text-zinc-300">${tx.paymentMethod || 'Pix'}</p>
                   </div>
                 </div>
               `).join('')}
@@ -212,35 +198,35 @@ export function renderDashboardView(data) {
           `}
         </div>
 
-        <!-- Próximas Contas a Pagar (Acesso Rápido) -->
-        <div class="card-minimal p-6 lg:col-span-5 space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-              <i data-lucide="calendar" class="w-4 h-4 text-zinc-400"></i> Próximos Vencimentos
+        <!-- Próximos Vencimentos -->
+        <div class="win-outset p-4 lg:col-span-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-400 pb-1">
+            <h3 class="text-xs font-bold text-black flex items-center gap-1.5">
+              <span>📅</span> <span>Contas a Pagar (Vencimentos)</span>
             </h3>
-            <button data-route="bills" class="sidebar-item text-xs text-zinc-400 hover:text-white">
+            <button data-route="bills" class="sidebar-item win-btn text-[10px] py-0.5 px-1.5">
               Gerenciar &rarr;
             </button>
           </div>
 
           ${pendingBills.length === 0 ? `
-            <div class="py-8 text-center text-xs text-zinc-500">
+            <div class="py-6 text-center text-xs text-zinc-600 win-inset bg-white p-3">
               <p>Nenhuma conta pendente no momento.</p>
-              <button data-route="bills" class="sidebar-item text-xs text-indigo-400 hover:underline mt-1 block mx-auto">
+              <button data-route="bills" class="sidebar-item win-btn mt-2 text-xs">
                 + Cadastrar Conta a Pagar
               </button>
             </div>
           ` : `
-            <div class="space-y-3">
+            <div class="space-y-2 win-inset bg-white p-2">
               ${pendingBills.map(b => `
-                <div class="p-3 rounded-xl bg-zinc-950 border border-white/5 flex items-center justify-between text-xs">
+                <div class="p-2 bg-[#f0f0f0] border border-zinc-300 flex items-center justify-between text-xs">
                   <div>
-                    <p class="font-medium text-zinc-200">${b.description}</p>
-                    <p class="text-[11px] text-zinc-500 font-mono">Vence em ${FORMATTERS.formatDate(b.dueDate)}</p>
+                    <p class="font-bold text-black">${b.description}</p>
+                    <p class="text-[10px] text-zinc-600 font-mono">Vence: ${FORMATTERS.formatDate(b.dueDate)}</p>
                   </div>
                   <div class="flex items-center gap-2">
-                    <span class="font-mono font-bold text-zinc-200">${FORMATTERS.formatCurrency(b.amount)}</span>
-                    <button class="btn-mark-bill-paid btn-primary text-[10px] py-1 px-2" data-id="${b.id}">
+                    <span class="font-mono font-bold text-[#aa0000]">${FORMATTERS.formatCurrency(b.amount)}</span>
+                    <button class="btn-mark-bill-paid win-btn py-0.5 px-2 text-[10px] font-bold" data-id="${b.id}">
                       Pagar
                     </button>
                   </div>

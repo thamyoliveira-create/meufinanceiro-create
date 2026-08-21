@@ -1,9 +1,7 @@
 /* ==========================================================================
-   MEU FINANCEIRO 98 - TEMA AUTÊNTICO WINDOWS 98
-   Nostalgia pura, pixel-perfect 3D Bevels, Teal Desktop, Taskbar e Menu Iniciar
+   MEU FINANCEIRO 98 - TEMA AUTÊNTICO WINDOWS 98 (ALTO CONTRASTE E LEGIBILIDADE)
+   Nostalgia pura, pixel-perfect 3D Bevels, Teal Desktop, Fontes Nítidas
    ========================================================================== */
-
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Silkscreen&display=swap');
 
 :root {
   --w98-teal: #008080;
@@ -14,10 +12,6 @@
   --w98-white: #ffffff;
   --w98-navy: #000080;
   --w98-navy-light: #1084d0;
-  --w98-blue-active: #000080;
-  --w98-yellow: #ffff00;
-  --w98-red: #ff0000;
-  --w98-green: #008000;
   
   --font-win98: 'Segoe UI', Tahoma, 'MS Sans Serif', Geneva, Arial, sans-serif;
   --font-win98-title: Tahoma, 'MS Sans Serif', Arial, sans-serif;
@@ -30,14 +24,15 @@
 }
 
 body {
-  background-color: var(--w98-teal);
-  color: var(--w98-black);
+  background-color: var(--w98-teal) !important;
+  color: #000000 !important;
   margin: 0;
   padding: 0;
   min-height: 100vh;
   padding-bottom: 34px; /* Espaço para a Taskbar */
-  background-image: none;
+  background-image: none !important;
   font-size: 12px;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ==========================================================================
@@ -46,31 +41,33 @@ body {
 
 /* Caixa em Alto Relevo (Raised Window / Button / Panel) */
 .win-outset {
-  background: var(--w98-gray);
-  border-top: 2px solid var(--w98-white);
-  border-left: 2px solid var(--w98-white);
-  border-right: 2px solid var(--w98-black);
-  border-bottom: 2px solid var(--w98-black);
-  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark);
+  background: var(--w98-gray) !important;
+  border-top: 2px solid var(--w98-white) !important;
+  border-left: 2px solid var(--w98-white) !important;
+  border-right: 2px solid var(--w98-black) !important;
+  border-bottom: 2px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
+  color: #000000 !important;
 }
 
 /* Caixa em Baixo Relevo (Sunken Input / Well / Status / Table Cell) */
 .win-inset {
-  background: var(--w98-white);
-  border-top: 2px solid var(--w98-gray-dark);
-  border-left: 2px solid var(--w98-gray-dark);
-  border-right: 2px solid var(--w98-white);
-  border-bottom: 2px solid var(--w98-white);
-  box-shadow: inset 1px 1px 0px var(--w98-black), inset -1px -1px 0px var(--w98-gray-light);
+  background: var(--w98-white) !important;
+  border-top: 2px solid var(--w98-gray-dark) !important;
+  border-left: 2px solid var(--w98-gray-dark) !important;
+  border-right: 2px solid var(--w98-white) !important;
+  border-bottom: 2px solid var(--w98-white) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-black), inset -1px -1px 0px var(--w98-gray-light) !important;
+  color: #000000 !important;
 }
 
-/* Campo rebaixado escuro ou de texto */
 .win-inset-gray {
-  background: var(--w98-gray);
-  border-top: 2px solid var(--w98-gray-dark);
-  border-left: 2px solid var(--w98-gray-dark);
-  border-right: 2px solid var(--w98-white);
-  border-bottom: 2px solid var(--w98-white);
+  background: var(--w98-gray) !important;
+  border-top: 2px solid var(--w98-gray-dark) !important;
+  border-left: 2px solid var(--w98-gray-dark) !important;
+  border-right: 2px solid var(--w98-white) !important;
+  border-bottom: 2px solid var(--w98-white) !important;
+  color: #000000 !important;
 }
 
 /* ==========================================================================
@@ -78,18 +75,19 @@ body {
    ========================================================================== */
 
 .win-window {
-  background: var(--w98-gray);
-  border-top: 2px solid var(--w98-white);
-  border-left: 2px solid var(--w98-white);
-  border-right: 2px solid var(--w98-black);
-  border-bottom: 2px solid var(--w98-black);
-  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark), 2px 2px 0px rgba(0,0,0,0.4);
+  background: var(--w98-gray) !important;
+  border-top: 2px solid var(--w98-white) !important;
+  border-left: 2px solid var(--w98-white) !important;
+  border-right: 2px solid var(--w98-black) !important;
+  border-bottom: 2px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark), 2px 2px 0px rgba(0,0,0,0.5) !important;
+  color: #000000 !important;
 }
 
 .win-titlebar {
-  background: linear-gradient(90deg, var(--w98-navy) 0%, var(--w98-navy-light) 100%);
-  color: var(--w98-white);
-  padding: 3px 4px;
+  background: linear-gradient(90deg, #000080 0%, #1084d0 100%) !important;
+  color: #ffffff !important;
+  padding: 3px 6px !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -99,37 +97,36 @@ body {
   user-select: none;
 }
 
-.win-titlebar.inactive {
-  background: linear-gradient(90deg, #808080 0%, #b5b5b5 100%);
+.win-titlebar span {
+  color: #ffffff !important;
 }
 
 .win-btn-control {
-  background: var(--w98-gray);
-  border-top: 1px solid var(--w98-white);
-  border-left: 1px solid var(--w98-white);
-  border-right: 1px solid var(--w98-black);
-  border-bottom: 1px solid var(--w98-black);
-  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark);
+  background: var(--w98-gray) !important;
+  border-top: 1px solid var(--w98-white) !important;
+  border-left: 1px solid var(--w98-white) !important;
+  border-right: 1px solid var(--w98-black) !important;
+  border-bottom: 1px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
   width: 16px;
   height: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-win98);
   font-size: 9px;
   font-weight: bold;
-  color: var(--w98-black);
+  color: #000000 !important;
   cursor: pointer;
   padding: 0;
   line-height: 1;
 }
 
 .win-btn-control:active {
-  border-top: 1px solid var(--w98-black);
-  border-left: 1px solid var(--w98-black);
-  border-right: 1px solid var(--w98-white);
-  border-bottom: 1px solid var(--w98-white);
-  box-shadow: none;
+  border-top: 1px solid var(--w98-black) !important;
+  border-left: 1px solid var(--w98-black) !important;
+  border-right: 1px solid var(--w98-white) !important;
+  border-bottom: 1px solid var(--w98-white) !important;
+  box-shadow: none !important;
   padding-top: 1px;
   padding-left: 1px;
 }
@@ -139,53 +136,57 @@ body {
    ========================================================================== */
 
 .win-menubar {
-  background: var(--w98-gray);
-  border-bottom: 1px solid var(--w98-gray-dark);
+  background: var(--w98-gray) !important;
+  border-bottom: 1px solid var(--w98-gray-dark) !important;
   padding: 2px 6px;
   display: flex;
   gap: 12px;
   font-size: 11px;
+  color: #000000 !important;
 }
 
 .win-menu-item {
-  color: var(--w98-black);
+  color: #000000 !important;
   cursor: pointer;
   padding: 1px 4px;
   user-select: none;
+  font-weight: 500;
 }
 
 .win-menu-item:hover {
-  background: var(--w98-navy);
-  color: var(--w98-white);
+  background: var(--w98-navy) !important;
+  color: #ffffff !important;
 }
 
 .win-toolbar {
-  background: var(--w98-gray);
-  border-bottom: 2px solid var(--w98-gray-dark);
+  background: var(--w98-gray) !important;
+  border-bottom: 2px solid var(--w98-gray-dark) !important;
   padding: 4px 6px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
+  color: #000000 !important;
 }
 
 .win-addressbar {
-  background: var(--w98-gray);
-  border-bottom: 1px solid var(--w98-gray-dark);
+  background: var(--w98-gray) !important;
+  border-bottom: 1px solid var(--w98-gray-dark) !important;
   padding: 3px 6px;
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
+  color: #000000 !important;
 }
 
 /* ==========================================================================
-   BOTÕES WINDOWS 98
+   BOTÕES WINDOWS 98 COM ALTO CONTRASTE
    ========================================================================== */
 
-.win-btn, .btn-primary, .btn-secondary {
+.win-btn, .btn-primary, .btn-secondary, .quick-action-pill {
   background: var(--w98-gray) !important;
-  color: var(--w98-black) !important;
+  color: #000000 !important;
   border-top: 2px solid var(--w98-white) !important;
   border-left: 2px solid var(--w98-white) !important;
   border-right: 2px solid var(--w98-black) !important;
@@ -193,7 +194,7 @@ body {
   box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
   padding: 3px 10px !important;
   font-size: 11px !important;
-  font-weight: normal !important;
+  font-weight: 600 !important;
   cursor: pointer !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -216,30 +217,22 @@ body {
   padding-right: 9px !important;
 }
 
-.win-btn-default {
-  border-top: 2px solid var(--w98-black) !important;
-  border-left: 2px solid var(--w98-black) !important;
-  border-right: 2px solid var(--w98-black) !important;
-  border-bottom: 2px solid var(--w98-black) !important;
-  outline: 1px dotted var(--w98-black);
-  outline-offset: -4px;
-}
-
 /* ==========================================================================
    INPUTS E SELECTS WINDOWS 98
    ========================================================================== */
 
 .input-fintech, input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="password"], select, textarea {
   background: var(--w98-white) !important;
-  color: var(--w98-black) !important;
+  color: #000000 !important;
   border-top: 2px solid var(--w98-gray-dark) !important;
   border-left: 2px solid var(--w98-gray-dark) !important;
   border-right: 2px solid var(--w98-white) !important;
   border-bottom: 2px solid var(--w98-white) !important;
   box-shadow: inset 1px 1px 0px var(--w98-black), inset -1px -1px 0px var(--w98-gray-light) !important;
   border-radius: 0px !important;
-  padding: 3px 5px !important;
+  padding: 3px 6px !important;
   font-size: 11px !important;
+  font-weight: 500 !important;
   outline: none !important;
 }
 
@@ -250,18 +243,19 @@ body {
 table {
   border-collapse: separate !important;
   border-spacing: 0 !important;
-  background: var(--w98-white);
+  background: var(--w98-white) !important;
+  width: 100%;
 }
 
 thead th {
   background: var(--w98-gray) !important;
-  color: var(--w98-black) !important;
+  color: #000000 !important;
   border-top: 1px solid var(--w98-white) !important;
   border-left: 1px solid var(--w98-white) !important;
   border-right: 1px solid var(--w98-black) !important;
   border-bottom: 1px solid var(--w98-black) !important;
   box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
-  padding: 3px 6px !important;
+  padding: 4px 6px !important;
   font-size: 11px !important;
   font-weight: bold !important;
   text-align: left !important;
@@ -269,11 +263,11 @@ thead th {
 }
 
 tbody td {
-  border-bottom: 1px solid var(--w98-gray-light) !important;
-  border-right: 1px solid var(--w98-gray-light) !important;
-  padding: 3px 6px !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+  border-right: 1px solid #e0e0e0 !important;
+  padding: 4px 6px !important;
   font-size: 11px !important;
-  color: var(--w98-black) !important;
+  color: #000000 !important;
 }
 
 tbody tr:hover {
@@ -282,9 +276,13 @@ tbody tr:hover {
 tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
   color: #ffffff !important;
 }
+tbody tr:hover select {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
 
 /* ==========================================================================
-   CARDS COMO GROUPBOXES / JANELAS
+   CARDS COMO GROUPBOXES / JANELAS COM ALTO CONTRASTE
    ========================================================================== */
 
 .card-minimal, .card-fintech, .card-elevated {
@@ -295,7 +293,46 @@ tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
   border-bottom: 2px solid var(--w98-black) !important;
   box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
   border-radius: 0px !important;
-  color: var(--w98-black) !important;
+  color: #000000 !important;
+}
+
+/* Forçar Alto Contraste em Todos os Textos */
+h1, h2, h3, h4, h5, h6 {
+  color: #000000 !important;
+  font-weight: bold !important;
+}
+
+p, span, label, div {
+  color: #000000;
+}
+
+/* Valores Financeiros de Alto Contraste */
+.text-emerald-400, .text-emerald-300, .text-green-500 {
+  color: #006600 !important; /* Verde Escuro Legível */
+  font-weight: bold !important;
+}
+
+.text-rose-400, .text-rose-300, .text-red-500, .text-red-400 {
+  color: #aa0000 !important; /* Vermelho Escuro Legível */
+  font-weight: bold !important;
+}
+
+.text-blue-400, .text-indigo-400 {
+  color: #000080 !important; /* Azul Escuro Legível */
+  font-weight: bold !important;
+}
+
+.text-amber-400, .text-yellow-500 {
+  color: #854d0e !important; /* Âmbar Escuro Legível */
+  font-weight: bold !important;
+}
+
+.text-white {
+  color: #000000 !important;
+}
+
+.text-zinc-200, .text-zinc-300, .text-zinc-400, .text-zinc-500, .text-slate-400, .text-slate-500 {
+  color: #222222 !important; /* Quase Preto de Alta Nitidez */
 }
 
 /* ==========================================================================
@@ -308,24 +345,25 @@ tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
   left: 0;
   right: 0;
   height: 30px;
-  background: var(--w98-gray);
-  border-top: 2px solid var(--w98-white);
-  box-shadow: inset 0 1px 0 var(--w98-gray-light);
+  background: var(--w98-gray) !important;
+  border-top: 2px solid var(--w98-white) !important;
+  box-shadow: inset 0 1px 0 var(--w98-gray-light) !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 2px 3px;
   z-index: 9999;
   user-select: none;
+  color: #000000 !important;
 }
 
 .win-start-btn {
-  background: var(--w98-gray);
-  border-top: 2px solid var(--w98-white);
-  border-left: 2px solid var(--w98-white);
-  border-right: 2px solid var(--w98-black);
-  border-bottom: 2px solid var(--w98-black);
-  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark);
+  background: var(--w98-gray) !important;
+  border-top: 2px solid var(--w98-white) !important;
+  border-left: 2px solid var(--w98-white) !important;
+  border-right: 2px solid var(--w98-black) !important;
+  border-bottom: 2px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark) !important;
   font-weight: bold;
   font-size: 11px;
   display: flex;
@@ -334,24 +372,25 @@ tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
   padding: 2px 6px;
   height: 22px;
   cursor: pointer;
+  color: #000000 !important;
 }
 
 .win-start-btn:active, .win-start-btn.active {
-  border-top: 2px solid var(--w98-black);
-  border-left: 2px solid var(--w98-black);
-  border-right: 2px solid var(--w98-white);
-  border-bottom: 2px solid var(--w98-white);
-  box-shadow: inset 1px 1px 0px var(--w98-gray-dark);
+  border-top: 2px solid var(--w98-black) !important;
+  border-left: 2px solid var(--w98-black) !important;
+  border-right: 2px solid var(--w98-white) !important;
+  border-bottom: 2px solid var(--w98-white) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-dark) !important;
   padding-top: 3px;
   padding-left: 7px;
 }
 
 .win-systray {
-  border-top: 2px solid var(--w98-gray-dark);
-  border-left: 2px solid var(--w98-gray-dark);
-  border-right: 2px solid var(--w98-white);
-  border-bottom: 2px solid var(--w98-white);
-  background: var(--w98-gray);
+  border-top: 2px solid var(--w98-gray-dark) !important;
+  border-left: 2px solid var(--w98-gray-dark) !important;
+  border-right: 2px solid var(--w98-white) !important;
+  border-bottom: 2px solid var(--w98-white) !important;
+  background: var(--w98-gray) !important;
   height: 22px;
   padding: 0 8px;
   display: flex;
@@ -359,6 +398,7 @@ tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
   gap: 8px;
   font-size: 11px;
   font-family: var(--font-mono-retro);
+  color: #000000 !important;
 }
 
 /* Menu Iniciar */
@@ -366,20 +406,20 @@ tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
   position: fixed;
   bottom: 30px;
   left: 2px;
-  width: 220px;
-  background: var(--w98-gray);
-  border-top: 2px solid var(--w98-white);
-  border-left: 2px solid var(--w98-white);
-  border-right: 2px solid var(--w98-black);
-  border-bottom: 2px solid var(--w98-black);
-  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark), 4px 4px 10px rgba(0,0,0,0.5);
+  width: 230px;
+  background: var(--w98-gray) !important;
+  border-top: 2px solid var(--w98-white) !important;
+  border-left: 2px solid var(--w98-white) !important;
+  border-right: 2px solid var(--w98-black) !important;
+  border-bottom: 2px solid var(--w98-black) !important;
+  box-shadow: inset 1px 1px 0px var(--w98-gray-light), inset -1px -1px 0px var(--w98-gray-dark), 4px 4px 10px rgba(0,0,0,0.5) !important;
   display: flex;
   z-index: 10000;
 }
 
 .win-start-banner {
-  background: linear-gradient(180deg, #000080 0%, #1084d0 100%);
-  color: var(--w98-white);
+  background: linear-gradient(180deg, #000080 0%, #1084d0 100%) !important;
+  color: #ffffff !important;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   font-size: 14px;
@@ -389,6 +429,10 @@ tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+}
+
+.win-start-banner span {
+  color: #ffffff !important;
 }
 
 .win-start-items {
@@ -405,15 +449,19 @@ tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
   gap: 8px;
   padding: 5px 8px;
   font-size: 11px;
-  color: var(--w98-black);
+  color: #000000 !important;
   cursor: pointer;
   text-decoration: none;
   user-select: none;
+  font-weight: 500;
 }
 
 .win-start-item:hover {
-  background: var(--w98-navy);
-  color: var(--w98-white);
+  background: #000080 !important;
+  color: #ffffff !important;
+}
+.win-start-item:hover span {
+  color: #ffffff !important;
 }
 
 /* ==========================================================================
@@ -421,30 +469,33 @@ tbody tr:hover td, tbody tr:hover td p, tbody tr:hover td span {
    ========================================================================== */
 
 .win-statusbar {
-  border-top: 1px solid var(--w98-gray-dark);
-  background: var(--w98-gray);
+  border-top: 1px solid var(--w98-gray-dark) !important;
+  background: var(--w98-gray) !important;
   padding: 2px 4px;
   display: flex;
   gap: 4px;
   font-size: 11px;
+  color: #000000 !important;
 }
 
 .win-status-pane {
-  border-top: 1px solid var(--w98-gray-dark);
-  border-left: 1px solid var(--w98-gray-dark);
-  border-right: 1px solid var(--w98-white);
-  border-bottom: 1px solid var(--w98-white);
+  border-top: 1px solid var(--w98-gray-dark) !important;
+  border-left: 1px solid var(--w98-gray-dark) !important;
+  border-right: 1px solid var(--w98-white) !important;
+  border-bottom: 1px solid var(--w98-white) !important;
   padding: 1px 6px;
   flex: 1;
+  color: #000000 !important;
 }
 
 .win-status-pane-fixed {
-  border-top: 1px solid var(--w98-gray-dark);
-  border-left: 1px solid var(--w98-gray-dark);
-  border-right: 1px solid var(--w98-white);
-  border-bottom: 1px solid var(--w98-white);
+  border-top: 1px solid var(--w98-gray-dark) !important;
+  border-left: 1px solid var(--w98-gray-dark) !important;
+  border-right: 1px solid var(--w98-white) !important;
+  border-bottom: 1px solid var(--w98-white) !important;
   padding: 1px 6px;
-  width: 140px;
+  width: 150px;
   text-align: right;
   font-family: var(--font-mono-retro);
+  color: #000000 !important;
 }
