@@ -1,6 +1,6 @@
-# 💰 Meu Financeiro IA
+# 💄 Gastosa 98 (SE)
 
-> Aplicativo completo, moderno e intuitivo de gestão financeira pessoal com Inteligência Artificial, gráficos interativos, isolamento de usuários, persistência e motor financeiro determinístico.
+> O aplicativo de controle financeiro pessoal inteligente com a estética nostálgica do Windows 98. "Porque mulher que gasta bem, investe melhor ainda!"
 
 ---
 

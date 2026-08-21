@@ -46,8 +46,8 @@ export function renderSidebar(activeRoute = 'dashboard') {
 
       <!-- Árvore de Diretórios -->
       <div class="flex-1 overflow-y-auto p-1 space-y-0.5 custom-scrollbar win-inset bg-white">
-        <div class="px-2 py-1 text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-          📂 C:\\MeuFinanceiro98\\
+        <div class="px-2 py-1 text-[10px] text-zinc-700 font-bold uppercase tracking-wider">
+          📂 C:\\Gastosa98\\
         </div>
         ${itemsHtml}
       </div>

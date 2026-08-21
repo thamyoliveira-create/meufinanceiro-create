@@ -237,7 +237,7 @@ class App {
           <div class="win-titlebar">
             <div class="flex items-center gap-2">
               <span class="text-xs">🪟</span>
-              <span>Meu Financeiro 98 - [${currentMenuItem.label}]</span>
+              <span>Gastosa 98 - [${currentMenuItem.label}]</span>
             </div>
             <div class="flex items-center gap-1">
               <button class="win-btn-control" id="btnWinMinimize" title="Minimizar">_</button>
@@ -292,7 +292,7 @@ class App {
           <div class="win-addressbar">
             <span class="font-bold text-zinc-700">Endereço:</span>
             <div class="win-inset flex-1 px-2 py-0.5 font-mono text-[11px] bg-white text-black flex items-center gap-1">
-              <span>📂</span> C:\\Meus Documentos\\Financeiro98\\<strong>${this.currentRoute}.exe</strong>
+              <span>📂</span> C:\\Meus Documentos\\Gastosa98\\<strong>${this.currentRoute}.exe</strong>
             </div>
           </div>
 
@@ -312,7 +312,7 @@ class App {
           <!-- Barra de Status do Windows 98 -->
           <div class="win-statusbar">
             <div class="win-status-pane">
-              <span>Pronto. Sistema Financeiro 98 conectado.</span>
+              <span>Pronto. Sistema Gastosa 98 conectado.</span>
             </div>
             <div class="win-status-pane-fixed">
               Saldo: <strong>${FORMATTERS.formatCurrency(metrics.currentBalance)}</strong>
@@ -1502,7 +1502,7 @@ class App {
       document.getElementById('importStatementModal')?.classList.remove('hidden');
     });
     document.getElementById('menuItemAjuda')?.addEventListener('click', () => {
-      alert('Meu Financeiro 98 SE\nVersão 4.10.1998\nSistema Pessoal de Finanças com IA e Nostalgia');
+      alert('Gastosa 98 SE\nVersão 4.10.1998\nControle Financeiro Pessoal Inteligente\n"Mulher no comando do seu próprio dinheiro!"');
     });
 
     // Outros listeners gerais

@@ -9,9 +9,9 @@ export function renderAuthView(mode = 'login') {
         <div class="win-titlebar">
           <div class="flex items-center gap-1.5">
             <span class="text-xs">🔐</span>
-            <span>Logon do Windows 98 - Meu Financeiro</span>
+            <span>Logon do Windows 98 - Gastosa</span>
           </div>
-          <button class="win-btn-control font-bold" onclick="alert('Digite suas credenciais para entrar no sistema.')">?</button>
+          <button class="win-btn-control font-bold" onclick="alert('Digite suas credenciais para entrar no sistema Gastosa.')">?</button>
         </div>
 
         <div class="p-5 space-y-4 text-xs text-black">
@@ -21,8 +21,8 @@ export function renderAuthView(mode = 'login') {
               🪟
             </div>
             <div>
-              <h2 class="text-sm font-bold text-black">Meu Financeiro 98</h2>
-              <p class="text-[11px] text-zinc-700">Digite seu e-mail e senha para acessar o sistema.</p>
+              <h2 class="text-sm font-bold text-black">Gastosa 98</h2>
+              <p class="text-[11px] text-zinc-700">Controle financeiro pessoal inteligente para quem está no comando.</p>
             </div>
           </div>
 

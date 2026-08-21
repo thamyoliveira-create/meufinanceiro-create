@@ -15,8 +15,8 @@ export function renderWin98Taskbar(activeRoute = 'dashboard', activeLabel = 'Das
 
       <!-- Itens do Menu Iniciar -->
       <div class="win-start-items">
-        <div class="px-2 py-1 border-b border-zinc-400 mb-1 text-[10px] text-zinc-600 font-bold">
-          Meu Financeiro 98 SE
+        <div class="px-2 py-1 border-b border-zinc-400 mb-1 text-[10px] text-zinc-800 font-bold">
+          Gastosa 98 SE
         </div>
 
         <button data-route="dashboard" class="sidebar-item win-start-item w-full text-left">
@@ -85,7 +85,7 @@ export function renderWin98Taskbar(activeRoute = 'dashboard', activeLabel = 'Das
       <div class="flex-1 px-2 flex items-center gap-1 overflow-x-auto">
         <button class="win-btn win-btn-pressed py-1 px-3 text-xs font-bold flex items-center gap-1.5 max-w-[220px] truncate">
           <span>📁</span>
-          <span class="truncate">Meu Financeiro - ${activeLabel}</span>
+          <span class="truncate">Gastosa 98 - ${activeLabel}</span>
         </button>
       </div>
 

@@ -1,9 +1,9 @@
 // Constantes e Configurações Globais - Meu Financeiro IA
 
 export const APP_CONFIG = {
-  name: 'Meu Financeiro IA',
+  name: 'Gastosa',
   version: '1.2.0',
-  storagePrefix: 'meu_financeiro_ia_',
+  storagePrefix: 'gastosa_app_',
   currency: 'BRL',
   locale: 'pt-BR',
   dateFormat: 'DD/MM/YYYY',
