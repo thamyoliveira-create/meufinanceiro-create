@@ -20,7 +20,7 @@ export function renderDashboardView(data) {
         <button id="btnQuickAddHero" class="win-btn font-bold">
           <span>➕</span> <span>Lançar Movimentação</span>
         </button>
-        <button id="btnOpenImportModal" class="win-btn">
+        <button class="win-btn btn-open-import-modal" title="Importar Extrato">
           <span>📁</span> <span>Importar Extrato (PDF/OFX)</span>
         </button>
         <button data-route="canibuy" class="sidebar-item win-btn">

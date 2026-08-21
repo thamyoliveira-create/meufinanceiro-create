@@ -646,7 +646,13 @@ class App {
       }
     };
 
-    document.getElementById('btnOpenImportModal')?.addEventListener('click', openImportModal);
+    document.querySelectorAll('#btnOpenImportModal, .btn-open-import-modal, #menuItemImportar, #btnStartMenuImport').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openImportModal();
+      });
+    });
+
     document.getElementById('btnCloseImportModal')?.addEventListener('click', () => modalImport?.classList.add('hidden'));
     document.getElementById('btnCancelImport')?.addEventListener('click', () => modalImport?.classList.add('hidden'));
 
@@ -656,23 +662,27 @@ class App {
     const pasteArea = document.getElementById('pasteTextArea');
 
     tabUpload?.addEventListener('click', () => {
-      tabUpload.classList.add('bg-white/10', 'text-white');
-      tabPaste.classList.remove('bg-white/10', 'text-white');
-      tabPaste.classList.add('text-zinc-400');
+      tabUpload.classList.add('win-btn-pressed');
+      tabPaste.classList.remove('win-btn-pressed');
       dropzone?.classList.remove('hidden');
       pasteArea?.classList.add('hidden');
     });
 
     tabPaste?.addEventListener('click', () => {
-      tabPaste.classList.add('bg-white/10', 'text-white');
-      tabUpload.classList.remove('bg-white/10', 'text-white');
-      tabUpload.classList.add('text-zinc-400');
+      tabPaste.classList.add('win-btn-pressed');
+      tabUpload.classList.remove('win-btn-pressed');
       pasteArea?.classList.remove('hidden');
       dropzone?.classList.add('hidden');
     });
 
     const fileInput = document.getElementById('statementFileInput');
-    dropzone?.addEventListener('click', () => fileInput?.click());
+    dropzone?.addEventListener('click', (e) => {
+      if (e.target.id !== 'btnChooseFileTrigger') fileInput?.click();
+    });
+    document.getElementById('btnChooseFileTrigger')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput?.click();
+    });
 
     dropzone?.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -1500,6 +1510,11 @@ class App {
     });
     document.getElementById('menuItemImportar')?.addEventListener('click', () => {
       document.getElementById('importStatementModal')?.classList.remove('hidden');
+    });
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.btn-open-import-modal, #btnOpenImportModal, #menuItemImportar, #btnStartMenuImport')) {
+        document.getElementById('importStatementModal')?.classList.remove('hidden');
+      }
     });
     document.getElementById('menuItemAjuda')?.addEventListener('click', () => {
       alert('Gastosa 98 SE\nVersão 4.10.1998\nControle Financeiro Pessoal Inteligente\n"Mulher no comando do seu próprio dinheiro!"');

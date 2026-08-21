@@ -45,7 +45,7 @@ export function renderTransactionsView(data) {
 
         <!-- Botões de Ação -->
         <div class="flex items-center gap-2">
-          <button id="btnOpenImportModal" class="win-btn">
+          <button class="win-btn btn-open-import-modal" title="Importar Extrato">
             <span>📁</span> <strong>Importar Extrato</strong>
           </button>
           <button id="btnExportCSV" class="win-btn">
