@@ -17,11 +17,17 @@ export function renderDashboardView(data) {
     <div class="space-y-4 animate-fade-in text-black">
       <!-- Deck de Ferramentas e Ações Rápidas -->
       <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-        <button id="btnQuickAddHero" class="win-btn font-bold">
-          <span>➕</span> <span>Lançar Movimentação</span>
+        <button class="win-btn btn-open-quick-income font-bold text-[#006600]" title="Adicionar Receita / Dinheiro Recebido na Conta">
+          <span>📥</span> <span>Adicionar Receita (+)</span>
         </button>
-        <button class="win-btn btn-open-import-modal" title="Importar Extrato">
+        <button class="win-btn btn-open-quick-expense font-bold text-[#aa0000]" title="Lançar Novo Gasto / Despesa">
+          <span>📤</span> <span>Novo Gasto (-)</span>
+        </button>
+        <button class="win-btn btn-open-import-modal" title="Importar Extrato Bancário">
           <span>📁</span> <span>Importar Extrato (PDF/OFX)</span>
+        </button>
+        <button data-route="bills" class="sidebar-item win-btn">
+          <span>🧾</span> <span>Contas a Pagar / Receber</span>
         </button>
         <button data-route="canibuy" class="sidebar-item win-btn">
           <span>🤖</span> <span>Posso Comprar?</span>
@@ -31,9 +37,6 @@ export function renderDashboardView(data) {
         </button>
         <button data-route="split" class="sidebar-item win-btn">
           <span>👥</span> <span>Dividir Gastos</span>
-        </button>
-        <button data-route="bills" class="sidebar-item win-btn">
-          <span>🧾</span> <span>Contas a Pagar</span>
         </button>
       </div>
 

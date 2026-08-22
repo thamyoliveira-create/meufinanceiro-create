@@ -45,14 +45,17 @@ export function renderTransactionsView(data) {
 
         <!-- Botões de Ação -->
         <div class="flex items-center gap-2">
+          <button class="win-btn btn-open-quick-income font-bold text-[#006600]" title="Adicionar Receita na Conta">
+            <span>📥</span> <strong>Nova Receita (+)</strong>
+          </button>
+          <button class="win-btn btn-open-quick-expense font-bold text-[#aa0000]" title="Lançar Nova Despesa">
+            <span>📤</span> <strong>Novo Gasto (-)</strong>
+          </button>
           <button class="win-btn btn-open-import-modal" title="Importar Extrato">
             <span>📁</span> <strong>Importar Extrato</strong>
           </button>
           <button id="btnExportCSV" class="win-btn">
             <span>💾</span> <strong>CSV</strong>
-          </button>
-          <button id="btnOpenNewTxModal" class="win-btn font-bold">
-            <span>➕</span> <strong>Novo Lançamento</strong>
           </button>
         </div>
       </div>

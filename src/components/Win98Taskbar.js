@@ -18,6 +18,15 @@ export function renderWin98Taskbar(activeRoute = 'dashboard', activeLabel = 'Das
           ${displayName}
         </div>
 
+        <button class="btn-open-quick-income win-start-item w-full text-left font-bold text-[#006600]">
+          <span>📥</span> <span>Adicionar Receita (+)</span>
+        </button>
+        <button class="btn-open-quick-expense win-start-item w-full text-left font-bold text-[#aa0000]">
+          <span>📤</span> <span>Novo Gasto (-)</span>
+        </button>
+
+        <div class="border-t border-zinc-400 my-1"></div>
+
         <button data-route="dashboard" class="sidebar-item win-start-item w-full text-left">
           <span>📊</span> <span>Dashboard</span>
         </button>

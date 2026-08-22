@@ -260,8 +260,11 @@ class App {
 
           <!-- Barra de Ferramentas com Botões Retro em Relevo 3D -->
           <div class="win-toolbar">
-            <button id="btnQuickAddExpense" class="win-btn" title="Registrar Nova Movimentação">
-              <span>➕</span> <strong>Novo Gasto</strong>
+            <button id="btnQuickAddIncome" class="win-btn btn-open-quick-income text-[#006600] font-bold" title="Adicionar Receita / Entrada de Dinheiro na Conta">
+              <span>📥</span> <strong>Nova Receita (+)</strong>
+            </button>
+            <button id="btnQuickAddExpense" class="win-btn btn-open-quick-expense text-[#aa0000] font-bold" title="Registrar Nova Despesa">
+              <span>📤</span> <strong>Novo Gasto (-)</strong>
             </button>
             <button id="btnOpenImportModal" class="win-btn btn-open-import-modal" title="Importar Extrato Bancário">
               <span>📁</span> <strong>Importar Extrato</strong>
@@ -280,7 +283,7 @@ class App {
               <span>📝</span> Transações
             </button>
             <button data-route="bills" class="sidebar-item win-btn">
-              <span>🧾</span> A Pagar
+              <span>🧾</span> A Pagar / Receber
             </button>
             <button data-route="fire" class="sidebar-item win-btn">
               <span>🔥</span> FIRE
@@ -500,17 +503,88 @@ class App {
     // MODAL DE CADASTRO RÁPIDO & OCR DE FOTO
     // ==========================================
     const modalQuickAdd = document.getElementById('quickAddModal');
-    const openQuickAdd = () => {
-      if (modalQuickAdd) {
-        modalQuickAdd.classList.remove('hidden');
-        document.getElementById('txDate').value = FORMATTERS.toIsoDate();
+    
+    const updateQuickAddTypeUI = (type) => {
+      const isIncome = type === 'income';
+      const isTransfer = type === 'transfer';
+
+      const helperText = document.getElementById('txTypeHelperText');
+      const helperIcon = document.getElementById('txTypeIcon');
+      const labelCat = document.getElementById('labelCategory');
+      const labelAcc = document.getElementById('labelAccount');
+      const catSelect = document.getElementById('txCategory');
+      const installmentRow = document.getElementById('installmentRow');
+      const sharedBlock = document.getElementById('sharedExpenseBlock');
+      const submitBtn = document.getElementById('btnSubmitQuickAdd');
+      const titleSpan = document.getElementById('quickAddTitle');
+
+      const filteredCategories = viewData.categories.filter(c => c.type === (isIncome ? 'income' : 'expense'));
+      if (catSelect) {
+        catSelect.innerHTML = filteredCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      }
+
+      if (isIncome) {
+        if (titleSpan) titleSpan.textContent = 'Adicionar Receita / Entrada na Conta - Gastosa 98';
+        if (helperIcon) helperIcon.textContent = '📥';
+        if (helperText) helperText.textContent = 'Adicionando dinheiro recebido na conta (Salário, Pix, Vendas, Rendimentos, etc.)';
+        if (labelAcc) labelAcc.textContent = 'Conta Onde o Dinheiro Entrou / Caiu:';
+        if (labelCat) labelCat.textContent = 'Categoria da Receita:';
+        if (installmentRow) installmentRow.classList.add('hidden');
+        if (sharedBlock) sharedBlock.classList.add('hidden');
+        if (submitBtn) submitBtn.innerHTML = '<span>📥</span> [ OK ] Salvar Receita (+)';
+      } else if (isTransfer) {
+        if (titleSpan) titleSpan.textContent = 'Transferência Entre Contas - Gastosa 98';
+        if (helperIcon) helperIcon.textContent = '↔';
+        if (helperText) helperText.textContent = 'Movimentando saldo entre duas contas suas.';
+        if (labelAcc) labelAcc.textContent = 'Conta de Origem:';
+        if (installmentRow) installmentRow.classList.add('hidden');
+        if (sharedBlock) sharedBlock.classList.add('hidden');
+        if (submitBtn) submitBtn.innerHTML = '<span>↔</span> [ OK ] Salvar Transferência';
+      } else {
+        if (titleSpan) titleSpan.textContent = 'Lançar Gasto / Despesa - Gastosa 98';
+        if (helperIcon) helperIcon.textContent = '📤';
+        if (helperText) helperText.textContent = 'Registrando uma saída / despesa da sua conta.';
+        if (labelAcc) labelAcc.textContent = 'Conta de Onde Saiu o Dinheiro:';
+        if (labelCat) labelCat.textContent = 'Categoria do Gasto:';
+        if (sharedBlock) sharedBlock.classList.remove('hidden');
+        if (submitBtn) submitBtn.innerHTML = '<span>📤</span> [ OK ] Salvar Despesa (-)';
       }
     };
 
-    document.getElementById('btnQuickAddExpense')?.addEventListener('click', openQuickAdd);
-    document.getElementById('btnQuickAddHero')?.addEventListener('click', openQuickAdd);
-    document.getElementById('btnMobileAddCenter')?.addEventListener('click', openQuickAdd);
-    document.getElementById('btnOpenNewTxModal')?.addEventListener('click', openQuickAdd);
+    const openQuickAdd = (type = 'expense') => {
+      if (modalQuickAdd) {
+        modalQuickAdd.classList.remove('hidden');
+        const radio = document.querySelector(`input[name="txType"][value="${type}"]`);
+        if (radio) radio.checked = true;
+        updateQuickAddTypeUI(type);
+        const dateInput = document.getElementById('txDate');
+        if (dateInput && !dateInput.value) {
+          dateInput.value = FORMATTERS.toIsoDate();
+        }
+      }
+    };
+
+    document.querySelectorAll('input[name="txType"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        updateQuickAddTypeUI(e.target.value);
+      });
+    });
+
+    document.querySelectorAll('.btn-open-quick-income, #btnQuickAddIncome').forEach(btn => {
+      btn.addEventListener('click', () => openQuickAdd('income'));
+    });
+    document.querySelectorAll('.btn-open-quick-expense, #btnQuickAddExpense, #btnQuickAddHero, #btnMobileAddCenter, #btnOpenNewTxModal').forEach(btn => {
+      btn.addEventListener('click', () => openQuickAdd('expense'));
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.btn-open-quick-income, #btnQuickAddIncome')) {
+        openQuickAdd('income');
+      } else if (e.target.closest('.btn-open-quick-expense')) {
+        openQuickAdd('expense');
+      }
+    });
+
     document.getElementById('btnCloseQuickAdd')?.addEventListener('click', () => modalQuickAdd?.classList.add('hidden'));
     document.getElementById('btnCancelQuickAdd')?.addEventListener('click', () => modalQuickAdd?.classList.add('hidden'));
 
@@ -544,6 +618,12 @@ class App {
 
       const parsed = AIService.parseNaturalLanguageExpense(text, viewData.categories);
       if (parsed) {
+        if (parsed.type) {
+          const radio = document.querySelector(`input[name="txType"][value="${parsed.type}"]`);
+          if (radio) radio.checked = true;
+          updateQuickAddTypeUI(parsed.type);
+        }
+
         document.getElementById('txDescription').value = parsed.description;
         if (parsed.amount > 0) document.getElementById('txAmount').value = parsed.amount;
         if (parsed.date) document.getElementById('txDate').value = parsed.date;

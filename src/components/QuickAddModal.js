@@ -1,123 +1,136 @@
-// Modal de Cadastro Rápido Minimalista com OCR de Comprovantes e Divisão - Meu Financeiro IA
+// Modal de Lançamento de Receitas e Despesas - Gastosa 98
 
 export function renderQuickAddModal(categories = [], accounts = [], creditCards = []) {
   const expenseCategories = categories.filter(c => c.type === 'expense');
+  const incomeCategories = categories.filter(c => c.type === 'income');
 
   return `
-    <div id="quickAddModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay animate-fade-in">
-      <div class="bg-[#101218] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-        <!-- Header -->
-        <div class="px-5 py-3.5 border-b border-white/[0.06] flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <i data-lucide="sparkles" class="w-4 h-4 text-zinc-300"></i>
-            <h3 class="text-xs font-semibold text-white uppercase tracking-wider">Nova Movimentação</h3>
+    <div id="quickAddModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 modal-overlay animate-fade-in select-none">
+      <div class="win-window w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+        <!-- Titlebar Windows 98 -->
+        <div class="win-titlebar">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs">⚡</span>
+            <span id="quickAddTitle">Lançar Movimentação - Gastosa 98</span>
           </div>
-          <button id="btnCloseQuickAdd" class="text-zinc-500 hover:text-white p-1 rounded-md">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+          <button id="btnCloseQuickAdd" class="win-btn-control font-bold" title="Fechar">✕</button>
         </div>
 
-        <!-- Conteúdo -->
-        <div class="p-5 space-y-4">
-          <!-- Entrada Rápida por IA ou Foto de Comprovante -->
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-2">
+        <!-- Conteúdo do Formulário -->
+        <div class="p-4 overflow-y-auto space-y-3 flex-1 custom-scrollbar text-xs text-black win-inset bg-white m-2">
+          <!-- Reconhecimento Rápido por IA / Texto ou Comprovante -->
+          <div class="win-outset p-2 space-y-1.5 bg-[#f0f0f0]">
+            <div class="flex items-center justify-between">
+              <label class="font-bold text-black text-[11px] flex items-center gap-1">
+                <span>🤖</span> Digite em Linguagem Natural ou Fotografe:
+              </label>
+              <span class="text-[10px] text-zinc-600 font-mono">IA Assistente</span>
+            </div>
+            <div class="flex items-center gap-1.5">
               <div class="relative flex-1">
-                <input type="text" id="nlInputText" placeholder='Ex: "Gastei 48 reais no Uber hoje" ou "iFood 65"' class="input-fintech pr-20 text-xs py-2">
-                <button id="btnParseNL" class="absolute right-1 top-1 bottom-1 px-2.5 rounded-md bg-white/10 hover:bg-white/20 text-zinc-200 text-xs font-medium transition-colors">
+                <input type="text" id="nlInputText" placeholder='Ex: "Recebi 3.500 de salário no Nubank" ou "Almoço 45"' class="input-fintech w-full text-xs py-1 pr-16">
+                <button type="button" id="btnParseNL" class="absolute right-0.5 top-0.5 bottom-0.5 win-btn font-bold text-[10px] px-2">
                   Analisar
                 </button>
               </div>
 
-              <!-- Botão Scanner de Comprovante / Foto -->
-              <label for="receiptImageInput" class="btn-secondary py-2 px-2.5 text-xs cursor-pointer" title="Ler Comprovante / Nota Fiscal por Foto">
-                <i data-lucide="camera" class="w-3.5 h-3.5 text-indigo-400"></i>
+              <!-- Botão Scanner de Foto -->
+              <label for="receiptImageInput" class="win-btn font-bold py-1 px-2 text-xs cursor-pointer" title="Ler Comprovante / Recibo por Foto">
+                <span>📷</span> Foto
                 <input type="file" id="receiptImageInput" accept="image/*" class="hidden">
               </label>
             </div>
           </div>
 
           <!-- Formulário Detalhado -->
-          <form id="quickAddForm" class="space-y-3.5 text-xs">
-            <!-- Tipo -->
-            <div class="grid grid-cols-3 gap-1 p-1 bg-zinc-950 rounded-lg border border-white/5">
+          <form id="quickAddForm" class="space-y-3 text-xs">
+            <!-- Seletor de Tipo (Receita / Despesa / Transferência) -->
+            <div class="grid grid-cols-3 gap-1 p-1 win-inset-gray">
               <label class="cursor-pointer">
-                <input type="radio" name="txType" value="expense" checked class="peer sr-only">
-                <div class="text-center py-1.5 font-medium rounded text-zinc-400 peer-checked:bg-white/10 peer-checked:text-white transition-colors">
-                  Despesa
+                <input type="radio" name="txType" value="income" id="radioTypeIncome" class="peer sr-only">
+                <div class="text-center py-1.5 font-bold rounded-none win-btn w-full peer-checked:win-btn-pressed peer-checked:text-[#006600]">
+                  📥 Receita (+)
                 </div>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="txType" value="income" class="peer sr-only">
-                <div class="text-center py-1.5 font-medium rounded text-zinc-400 peer-checked:bg-white/10 peer-checked:text-white transition-colors">
-                  Receita
+                <input type="radio" name="txType" value="expense" id="radioTypeExpense" checked class="peer sr-only">
+                <div class="text-center py-1.5 font-bold rounded-none win-btn w-full peer-checked:win-btn-pressed peer-checked:text-[#aa0000]">
+                  📤 Despesa (-)
                 </div>
               </label>
               <label class="cursor-pointer">
-                <input type="radio" name="txType" value="transfer" class="peer sr-only">
-                <div class="text-center py-1.5 font-medium rounded text-zinc-400 peer-checked:bg-white/10 peer-checked:text-white transition-colors">
-                  Transferência
+                <input type="radio" name="txType" value="transfer" id="radioTypeTransfer" class="peer sr-only">
+                <div class="text-center py-1.5 font-bold rounded-none win-btn w-full peer-checked:win-btn-pressed peer-checked:text-[#000080]">
+                  ↔ Transferência
                 </div>
               </label>
+            </div>
+
+            <!-- Banner Explicativo do Tipo -->
+            <div id="txTypeHelperBanner" class="p-2 win-outset text-xs flex items-center gap-1.5 font-medium">
+              <span id="txTypeIcon">📤</span>
+              <span id="txTypeHelperText">Registrando uma saída / despesa da sua conta.</span>
             </div>
 
             <!-- Descrição e Valor -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-medium text-zinc-400 mb-1">Descrição</label>
-                <input type="text" id="txDescription" required placeholder="Ex: Supermercado" class="input-fintech">
+                <label class="block font-bold text-black mb-1">Descrição:</label>
+                <input type="text" id="txDescription" required placeholder="Ex: Salário, Pix recebido, Mercado..." class="input-fintech w-full">
               </div>
               <div>
-                <label class="block font-medium text-zinc-400 mb-1">Valor (R$)</label>
-                <input type="number" step="0.01" min="0.01" id="txAmount" required placeholder="0,00" class="input-fintech font-mono font-bold text-white">
+                <label class="block font-bold text-black mb-1">Valor (R$):</label>
+                <input type="number" step="0.01" min="0.01" id="txAmount" required placeholder="0,00" class="input-fintech font-mono font-bold w-full text-sm">
               </div>
             </div>
 
             <!-- Categoria e Data -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-medium text-zinc-400 mb-1">Categoria</label>
-                <select id="txCategory" class="input-fintech">
+                <label class="block font-bold text-black mb-1" id="labelCategory">Categoria:</label>
+                <select id="txCategory" class="input-fintech w-full font-medium">
+                  <!-- Populado dinamicamente com base no tipo -->
                   ${expenseCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
                 </select>
               </div>
               <div>
-                <label class="block font-medium text-zinc-400 mb-1">Data</label>
-                <input type="date" id="txDate" required class="input-fintech">
+                <label class="block font-bold text-black mb-1">Data da Movimentação:</label>
+                <input type="date" id="txDate" required class="input-fintech w-full font-medium">
               </div>
             </div>
 
             <!-- Conta e Pagamento -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-medium text-zinc-400 mb-1">Conta de Origem</label>
-                <select id="txAccount" class="input-fintech">
-                  ${accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
+                <label class="block font-bold text-black mb-1" id="labelAccount">Conta Onde Caiu / Saiu:</label>
+                <select id="txAccount" class="input-fintech w-full font-medium">
+                  ${accounts.map(a => `<option value="${a.id}">${a.name} (R$ ${Number(a.currentBalance || 0).toFixed(2)})</option>`).join('')}
                 </select>
               </div>
               <div>
-                <label class="block font-medium text-zinc-400 mb-1">Forma de Pagamento</label>
-                <select id="txPaymentMethod" class="input-fintech">
-                  <option value="pix">Pix</option>
+                <label class="block font-bold text-black mb-1">Meio / Forma:</label>
+                <select id="txPaymentMethod" class="input-fintech w-full font-medium">
+                  <option value="pix">Pix (Transferência Instantânea)</option>
+                  <option value="transfer">TED / DOC / Transferência</option>
                   <option value="credit">Cartão de Crédito</option>
                   <option value="debit">Cartão de Débito</option>
-                  <option value="money">Dinheiro</option>
+                  <option value="money">Dinheiro em Espécie</option>
                   <option value="boleto">Boleto Bancário</option>
                 </select>
               </div>
             </div>
 
-            <!-- Parcelas -->
-            <div id="installmentRow" class="hidden grid grid-cols-2 gap-3 p-3 bg-zinc-950 rounded-lg border border-white/5">
+            <!-- Parcelas (Apenas para despesas no cartão) -->
+            <div id="installmentRow" class="hidden grid grid-cols-2 gap-2 p-2 win-outset bg-[#f9f9f9]">
               <div>
-                <label class="block font-medium text-zinc-400 mb-1">Cartão de Crédito</label>
-                <select id="txCreditCard" class="input-fintech">
+                <label class="block font-bold text-black mb-0.5">Cartão de Crédito:</label>
+                <select id="txCreditCard" class="input-fintech w-full">
                   ${creditCards.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
                 </select>
               </div>
               <div>
-                <label class="block font-medium text-zinc-400 mb-1">Parcelas</label>
-                <select id="txInstallments" class="input-fintech">
+                <label class="block font-bold text-black mb-0.5">Parcelamento:</label>
+                <select id="txInstallments" class="input-fintech w-full">
                   <option value="1">1x (À vista)</option>
                   <option value="2">2x</option>
                   <option value="3">3x</option>
@@ -130,21 +143,21 @@ export function renderQuickAddModal(categories = [], accounts = [], creditCards 
               </div>
             </div>
 
-            <!-- Divisão de Gastos (Casais / Amigos) -->
-            <div class="p-3 bg-zinc-950 rounded-lg border border-white/5 space-y-2">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" id="txIsShared" class="rounded bg-zinc-900 border-white/10">
-                <span class="font-medium text-zinc-300">Despesa Compartilhada (Dividir com alguém)</span>
+            <!-- Divisão de Gastos (Opcional) -->
+            <div id="sharedExpenseBlock" class="p-2 win-outset bg-[#f9f9f9] space-y-1.5">
+              <label class="flex items-center gap-2 cursor-pointer font-bold text-black">
+                <input type="checkbox" id="txIsShared">
+                <span>Dividir este valor com alguém (Ex: parceiro/amigo)</span>
               </label>
 
               <div id="sharedExpenseFields" class="hidden grid grid-cols-2 gap-2 pt-1">
                 <div>
-                  <label class="block font-medium text-zinc-500 text-[10px] mb-0.5">Dividir com quem?</label>
-                  <input type="text" id="txSharedWith" value="Parceiro(a)" placeholder="Nome da pessoa" class="input-fintech text-[11px] py-1">
+                  <label class="block font-bold text-zinc-700 text-[10px]">Nome da pessoa:</label>
+                  <input type="text" id="txSharedWith" value="Parceiro(a)" placeholder="Ex: Lucas" class="input-fintech text-[11px] py-0.5 w-full">
                 </div>
                 <div>
-                  <label class="block font-medium text-zinc-500 text-[10px] mb-0.5">Parte da outra pessoa (%)</label>
-                  <select id="txSharedPercent" class="input-fintech text-[11px] py-1">
+                  <label class="block font-bold text-zinc-700 text-[10px]">Parte da pessoa (%):</label>
+                  <select id="txSharedPercent" class="input-fintech text-[11px] py-0.5 w-full">
                     <option value="50" selected>50% (Meio a meio)</option>
                     <option value="60">60%</option>
                     <option value="40">40%</option>
@@ -154,11 +167,11 @@ export function renderQuickAddModal(categories = [], accounts = [], creditCards 
               </div>
             </div>
 
-            <!-- Ações -->
-            <div class="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
-              <button type="button" id="btnCancelQuickAdd" class="btn-secondary text-xs">Cancelar</button>
-              <button type="submit" class="btn-primary text-xs">
-                Confirmar e Salvar
+            <!-- Botões de Ação do Rodapé -->
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-400">
+              <button type="button" id="btnCancelQuickAdd" class="win-btn px-3 py-1">Cancelar</button>
+              <button type="submit" id="btnSubmitQuickAdd" class="win-btn font-bold px-4 py-1 text-black">
+                [ OK ] Salvar Lançamento
               </button>
             </div>
           </form>
